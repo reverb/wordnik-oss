@@ -30,7 +30,7 @@ public class RotatingFileWriter {
 	}
 
 	public void write(String stringToWrite) throws IOException {
-		getWriter().write(stringToWrite);
+		getWriter().write(stringToWrite + "\n");
 		int sz = stringToWrite.length();
 		currentFileSize += sz;
 		totalBytesWritten += sz;
@@ -137,8 +137,10 @@ public class RotatingFileWriter {
 
 		public void run(){
 			try{
+				System.out.println("compressing file " + filename);
 				ZipUtil.createArchive(getPath(filename + ".zip"), null, getPath(filename));
 				new File(getPath(filename)).delete();
+				System.out.println("done compressing " + filename);
 			}
 			catch(Exception e){
 				e.printStackTrace();
