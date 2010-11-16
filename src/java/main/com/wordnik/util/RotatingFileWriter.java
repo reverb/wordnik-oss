@@ -1,4 +1,4 @@
-package com.wordnik.system.mongodb;
+package com.wordnik.util;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -20,13 +20,22 @@ public class RotatingFileWriter {
 	long maxFileSizeInBytes;
 	long currentFileSize;
 	Writer writer;
-	
+
 	public RotatingFileWriter(String filePrefix, String destinationDirectory, String extension, long maxFileSizeInBytes, boolean compressOnRotate){
 		this.filePrefix = filePrefix;
 		this.destinationDirectory = destinationDirectory;
 		this.extension = extension;
 		this.maxFileSizeInBytes = maxFileSizeInBytes;
 		this.compressOnRotate = compressOnRotate;
+
+		if(destinationDirectory != null){
+			File file = new File(destinationDirectory);
+			if(!file.exists()){
+				if(!file.mkdir()){
+					throw new RuntimeException("output directory doesn't exist and cannot be created");
+				}
+			}
+		}
 	}
 
 	public void write(String stringToWrite) throws IOException {
@@ -51,6 +60,9 @@ public class RotatingFileWriter {
 	}
 
 	void rotateFile() throws IOException {
+		if(writer == null){
+			return;
+		}
 		writer.close();
 		currentFileSize = 0;
 		File file = new File(getPath(getFilename()));
@@ -113,10 +125,18 @@ public class RotatingFileWriter {
 				if(tk.countTokens() > 2){
 					tk.nextToken();
 					//	use 2nd token
-					String sub = tk.nextToken();
-					int inc = Integer.parseInt(sub);
-					if(inc > lastInc){
-						lastInc = inc;
+					while(tk.hasMoreTokens()){
+						try{
+							String sub = tk.nextToken();
+							int inc = Integer.parseInt(sub);
+							if(inc > lastInc){
+								lastInc = inc;
+							}
+							break;
+						}
+						catch(NumberFormatException ex){
+							//	get next one
+						}
 					}
 				}
 			}
@@ -139,6 +159,7 @@ public class RotatingFileWriter {
 			try{
 				System.out.println("compressing file " + filename);
 				ZipUtil.createArchive(getPath(filename + ".zip"), null, getPath(filename));
+//				GZipUtil.createArchive(getPath(filename + ".gz"), getPath(filename));
 				new File(getPath(filename)).delete();
 				System.out.println("done compressing " + filename);
 			}

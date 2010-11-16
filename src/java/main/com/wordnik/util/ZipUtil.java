@@ -1,4 +1,4 @@
-package com.wordnik.system.mongodb;
+package com.wordnik.util;
 
 import java.io.File;
 import java.io.FileInputStream;
