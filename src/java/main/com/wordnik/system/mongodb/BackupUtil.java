@@ -2,9 +2,7 @@ package com.wordnik.system.mongodb;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
@@ -109,13 +107,25 @@ public class BackupUtil extends BaseMongoUtil {
 					collectionsToAdd.addAll(collectionsInDb);
 				}
 			}
-			
+
 			for(String collectionName : collectionsToAdd){
-				long count = getDb().getCollection(collectionName).count();
-				if(count > 0){
-					collections.add(new CollectionInfo(collectionName, count));
+				if(!"system.indexes".equals(collectionName)){
+					long count = getDb().getCollection(collectionName).count();
+					if(count > 0){
+						CollectionInfo info = new CollectionInfo(collectionName, count);
+						collections.add(info);
+						
+						String indexName = new StringBuilder().append(DATABASE_NAME).append(".").append(collectionName).toString(); 
+						DBCursor cur = getDb().getCollection("system.indexes").find(new BasicDBObject("ns", indexName));
+						if(cur != null){
+							while(cur.hasNext()){
+								info.addIndex((BasicDBObject)cur.next());
+							}
+						}
+					}
 				}
 			}
+			
 		}
 		catch(Exception e){
 			throw new RuntimeException(e);
@@ -154,15 +164,15 @@ public class BackupUtil extends BaseMongoUtil {
 	class CollectionInfo {
 		String name;
 		long count;
+		List<BasicDBObject> indexes = new ArrayList<BasicDBObject>();
 		
 		public CollectionInfo(String name, long count){
 			this.name = name;
 			this.count = count;
 		}
 
-		@Override
-		public String toString() {
-			return "CollectionInfo [count=" + count + ", name=" + name + "]";
+		public void addIndex(BasicDBObject index) {
+			indexes.add(index);
 		}
 	}
 
@@ -173,7 +183,7 @@ public class BackupUtil extends BaseMongoUtil {
 		long writes = 0;
 		boolean isDone = false;
 		CollectionInfo currentCollection = null;
-		
+
 		public BackupThread(int threadId){
 			this.threadId = threadId;
 		}
@@ -184,14 +194,20 @@ public class BackupUtil extends BaseMongoUtil {
 				writes = 0;
 				currentCollection = info;
 				try{
+					writeConnectivityDetailString(currentCollection.name);
+					if(currentCollection.indexes.size() > 0){
+						writeComment(currentCollection.name, "indexes");
+					}
+					for(BasicDBObject index : currentCollection.indexes){
+						writeComment(currentCollection.name, index);
+					}
 					LAST_OUTPUT = System.currentTimeMillis();
 					START_TIME = System.currentTimeMillis();
 					DB db = getDb();
 					DBCollection collection = db.getCollection(currentCollection.name);
-
 		            DBCursor cursor = null;
 		            cursor = collection.find();
-		            cursor.sort(new BasicDBObject("$natural", 1));
+		            cursor.sort(new BasicDBObject("_id", 1));
 
 		            while (cursor.hasNext() ){
 		                BasicDBObject x = (BasicDBObject) cursor.next();

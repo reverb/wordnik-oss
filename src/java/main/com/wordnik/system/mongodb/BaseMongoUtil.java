@@ -26,8 +26,11 @@ public class BaseMongoUtil {
 	protected static int fileSizeInMb = 100;
 	protected static long WRITES = 0;
 	protected static long REPORT_INTERVAL = 10000;
-	
+
 	private static DB db = null;
+
+	protected static Map<String, RotatingFileWriter> WRITERS = new HashMap<String, RotatingFileWriter>();
+
 	protected DB getDb() throws Exception {
 		if(db == null){
 			synchronized(this){
@@ -44,7 +47,33 @@ public class BaseMongoUtil {
 		return db;
 	}
 
-	protected static Map<String, RotatingFileWriter> WRITERS = new HashMap<String, RotatingFileWriter>();
+	protected void writeConnectivityDetailString(String collectionName) throws IOException {
+		writeComment(collectionName, "################################");
+		writeComment(collectionName, "# export created on " + new java.util.Date());
+		writeComment(collectionName, "# host: " + DATABASE_HOST);
+		writeComment(collectionName, "# database: " + DATABASE_NAME);
+		writeComment(collectionName, "# collection: " + collectionName);
+		writeComment(collectionName, "################################");
+	}
+
+	protected void writeComment(String collectionName, BasicDBObject comment) throws IOException {
+		RotatingFileWriter writer = WRITERS.get(collectionName);
+		if(writer == null){
+			writer = new RotatingFileWriter(collectionName, OUTPUT_DIRECTORY, "json", fileSizeInMb * 1048576L, zip);
+			WRITERS.put(collectionName, writer);
+		}
+		writer.write("//\t"+comment.toString());
+	}
+
+	protected void writeComment(String collectionName, String comment) throws IOException {
+		RotatingFileWriter writer = WRITERS.get(collectionName);
+		if(writer == null){
+			writer = new RotatingFileWriter(collectionName, OUTPUT_DIRECTORY, "json", fileSizeInMb * 1048576L, zip);
+			WRITERS.put(collectionName, writer);
+		}
+		writer.write("//\t"+comment);
+	}
+	
 	protected void write(String collectionName, BasicDBObject dbo) throws IOException {
 		RotatingFileWriter writer = WRITERS.get(collectionName);
 		if(writer == null){
