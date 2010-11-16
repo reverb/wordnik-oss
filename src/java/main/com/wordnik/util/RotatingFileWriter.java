@@ -157,11 +157,11 @@ public class RotatingFileWriter {
 
 		public void run(){
 			try{
-				System.out.println("compressing file " + filename);
-				ZipUtil.createArchive(getPath(filename + ".zip"), null, getPath(filename));
-//				GZipUtil.createArchive(getPath(filename + ".gz"), getPath(filename));
+//				System.out.println("compressing file " + filename);
+//				ZipUtil.createArchive(getPath(filename + ".zip"), null, getPath(filename));
+				GZipUtil.createArchive(filename + ".gz", filename);
 				new File(getPath(filename)).delete();
-				System.out.println("done compressing " + filename);
+//				System.out.println("done compressing " + filename);
 			}
 			catch(Exception e){
 				e.printStackTrace();
