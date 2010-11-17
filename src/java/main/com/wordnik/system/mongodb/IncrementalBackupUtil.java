@@ -131,6 +131,8 @@ public class IncrementalBackupUtil extends BaseMongoUtil {
 		            }
 		            catch(com.mongodb.MongoInternalException ex){
 		            	saveLastTimestamp(ts);
+		            	ex.printStackTrace();
+		            	break;
 		            }
 	            }
 				Thread.sleep(1000);
@@ -150,6 +152,9 @@ public class IncrementalBackupUtil extends BaseMongoUtil {
 		}
 
 		void saveLastTimestamp(BSONTimestamp ts){
+			if(ts == null){
+				return;
+			}
 			Writer writer = null;
 			try{
 				OutputStream out = new FileOutputStream(new File(OPLOG_LAST_FILENAME));
