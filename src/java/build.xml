@@ -19,7 +19,12 @@
 		</jar>
 	</target>
 
-	<target name="dist" depends="build">
+	<target name="clean">
+		<delete dir="dist"/>
+		<delete dir="build" quiet="true"/>
+	</target>
+
+	<target name="dist" depends="clean,build">
 		<!-- make dist -->
 		<delete dir="dist"/>
 
