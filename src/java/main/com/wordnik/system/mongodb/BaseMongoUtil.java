@@ -6,9 +6,13 @@ import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.bson.BSON;
+
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.Mongo;
+import com.wordnik.util.AbstractFileWriter;
+import com.wordnik.util.BinaryRotatingFileWriter;
 import com.wordnik.util.RotatingFileWriter;
 
 public class BaseMongoUtil {
@@ -16,7 +20,7 @@ public class BaseMongoUtil {
 	protected static String DATABASE_USER_NAME = null;
 	protected static String DATABASE_PASSWORD = null;
 	protected static String DATABASE_HOST = "localhost";
-
+	protected static boolean WRITE_JSON = false;
 	protected static String OUTPUT_DIRECTORY = null;
 	protected static NumberFormat LONG_FORMAT = new DecimalFormat("###,###");
 	protected static NumberFormat NUMBER_FORMAT = new DecimalFormat("###.##");
@@ -29,7 +33,7 @@ public class BaseMongoUtil {
 
 	private static DB db = null;
 
-	protected static Map<String, RotatingFileWriter> WRITERS = new HashMap<String, RotatingFileWriter>();
+	protected static Map<String, AbstractFileWriter> WRITERS = new HashMap<String, AbstractFileWriter>();
 
 	protected DB getDb() throws Exception {
 		if(db == null){
@@ -49,42 +53,70 @@ public class BaseMongoUtil {
 
 	protected void writeConnectivityDetailString(String collectionName) throws IOException {
 		writeComment(collectionName, "##########################################");
-		writeComment(collectionName, "## export created on " + new java.util.Date());
-		writeComment(collectionName, "## host: " + DATABASE_HOST);
-		writeComment(collectionName, "## database: " + DATABASE_NAME);
-		writeComment(collectionName, "## collection: " + collectionName);
+		writeComment(collectionName, "##\texport created on " + new java.util.Date());
+		writeComment(collectionName, "##\thost: " + DATABASE_HOST);
+		writeComment(collectionName, "##\tdatabase: " + DATABASE_NAME);
+		writeComment(collectionName, "##\tcollection: " + collectionName);
 		writeComment(collectionName, "##########################################");
 	}
 
 	protected void writeComment(String collectionName, BasicDBObject comment) throws IOException {
-		RotatingFileWriter writer = WRITERS.get(collectionName);
+/*		BinaryRotatingFileWriter writer = WRITERS.get(collectionName);
 		if(writer == null){
-			writer = new RotatingFileWriter(collectionName, OUTPUT_DIRECTORY, "json", UNCOMPRESSED_FILE_SIZE_MB * 1048576L, COMPRESS_OUTPUT_FILES);
+			writer = new BinaryRotatingFileWriter(collectionName, OUTPUT_DIRECTORY, "bson", UNCOMPRESSED_FILE_SIZE_MB * 1048576L, COMPRESS_OUTPUT_FILES);
 			WRITERS.put(collectionName, writer);
 		}
 		writer.write("//  "+comment.toString());
+*/
 	}
 
 	protected void writeComment(String collectionName, String comment) throws IOException {
-		RotatingFileWriter writer = WRITERS.get(collectionName);
+/*		BinaryRotatingFileWriter writer = WRITERS.get(collectionName);
 		if(writer == null){
-			writer = new RotatingFileWriter(collectionName, OUTPUT_DIRECTORY, "json", UNCOMPRESSED_FILE_SIZE_MB * 1048576L, COMPRESS_OUTPUT_FILES);
+			writer = new BinaryRotatingFileWriter(collectionName, OUTPUT_DIRECTORY, "bson", UNCOMPRESSED_FILE_SIZE_MB * 1048576L, COMPRESS_OUTPUT_FILES);
 			WRITERS.put(collectionName, writer);
 		}
 		writer.write("//\t"+comment);
+*/
 	}
-	
-	protected void write(String collectionName, BasicDBObject dbo) throws IOException {
-		RotatingFileWriter writer = WRITERS.get(collectionName);
+
+	protected void writeIndex(String collectionName, BasicDBObject index) throws IOException {
+/*		RotatingFileWriter writer = (RotatingFileWriter)WRITERS.get(collectionName);
 		if(writer == null){
 			writer = new RotatingFileWriter(collectionName, OUTPUT_DIRECTORY, "json", UNCOMPRESSED_FILE_SIZE_MB * 1048576L, COMPRESS_OUTPUT_FILES);
 			WRITERS.put(collectionName, writer);
 		}
-		writer.write(dbo.toString());
+		writer.write("// index:" + new String(BSON.encode(index)));
+*/
+	}
+
+	protected void write(String collectionName, BasicDBObject dbo) throws IOException {
+		if(WRITE_JSON){
+			RotatingFileWriter writer = (RotatingFileWriter)WRITERS.get(collectionName);
+			if(writer == null){
+				writer = new RotatingFileWriter(collectionName, OUTPUT_DIRECTORY, "json", UNCOMPRESSED_FILE_SIZE_MB * 1048576L, COMPRESS_OUTPUT_FILES);
+				WRITERS.put(collectionName, writer);
+			}
+			writer.write(dbo.toString());
+		}
+		else{
+			BinaryRotatingFileWriter writer = (BinaryRotatingFileWriter)WRITERS.get(collectionName);
+			if(writer == null){
+				writer = new BinaryRotatingFileWriter(collectionName, OUTPUT_DIRECTORY, "bson", UNCOMPRESSED_FILE_SIZE_MB * 1048576L, COMPRESS_OUTPUT_FILES);
+				WRITERS.put(collectionName, writer);
+			}
+			writer.write(BSON.encode(dbo));
+		}
 	}
 
 	protected void closeWriter(String collectionName) throws IOException {
-		RotatingFileWriter writer = WRITERS.get(collectionName);
+		AbstractFileWriter writer;
+		if(WRITE_JSON){
+			writer = (RotatingFileWriter)WRITERS.get(collectionName);
+		}
+		else{
+			writer = WRITERS.get(collectionName);
+		}
 		if(writer != null){
 			writer.close();
 		}
@@ -93,16 +125,17 @@ public class BaseMongoUtil {
 	public static void usage(){
 		System.out.println(" -d : database name");
 		System.out.println(" -h : hostname");
-		System.out.println(" -o : output directory");
 		System.out.println(" [-u : username]");
 		System.out.println(" [-p : password]");
-		System.out.println(" [-s : max file size in MB]");
-		System.out.println(" [-Z : compress files]");
 	}
 
 	protected static int parseArg(int pos, String[] args) {
 		int i = pos;
 		switch (args[i].charAt(1)) {
+		case 'J':
+			WRITE_JSON = true;
+			i++;
+			break;
 		case 'd':
 			DATABASE_NAME = args[++i];
 			break;
@@ -114,15 +147,6 @@ public class BaseMongoUtil {
 			break;
 		case 'h':
 			DATABASE_HOST = args[++i];
-			break;
-		case 'o':
-			OUTPUT_DIRECTORY = args[++i];
-			break;
-		case 's':
-			UNCOMPRESSED_FILE_SIZE_MB = Integer.parseInt(args[++i]);
-			break;
-		case 'z':
-			COMPRESS_OUTPUT_FILES = Boolean.parseBoolean(args[++i]);
 			break;
 		default:
 			return 0;
