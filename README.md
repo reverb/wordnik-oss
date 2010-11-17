@@ -3,8 +3,9 @@
 ## Overview
 These are tools used to maintain a MongoDB deployment.
 
+### To build
+Requires apache ant 1.7 or greater, java 6:
 
-To build (requires apache ant 1.7 or greater, java 6):
 <pre>
 cd src/java
 ant install.ivy
@@ -17,7 +18,24 @@ cd dist (or wherever you unzipped the distribution)
 ./bin/run.sh <tool-class> <options>
 </pre>
 
-Tools included:
+### To get toop options
+Run any tool with a -? parameter to see the options:
+
+<pre>./bin/run.sh com.wordnik.system.mongodb.SnapshotUtil -?
+usage: SnapshotUtil
+ -c : CSV collection string (prefix with ! to exclude)
+ -d : database name
+ -h : hostname
+ -t : threads
+ -o : output directory
+ [-s : max file size in MB]
+ [-Z : compress files]
+ [-J : output in JSON (default is BSON)]
+ [-u : username]
+ [-p : password]
+</pre>
+
+### Tools included:
 <pre>com.wordnik.system.mongodb.SnapshotUtil</pre>
 This is pretty straight forward, it's meant for taking backups of your data.  The differences between it and mongodump are:
 <li>It splits files based on a configurable size</li>
