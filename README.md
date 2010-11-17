@@ -12,13 +12,14 @@ ant install.ivy
 ant dist
 </pre>
 
-To run tools:
+### To run
 <pre>
 cd dist (or wherever you unzipped the distribution)
 ./bin/run.sh <tool-class> <options>
 </pre>
 
-### To get toop options
+
+### To get tool options
 Run any tool with a -? parameter to see the options:
 
 <pre>./bin/run.sh com.wordnik.system.mongodb.SnapshotUtil -?
@@ -35,7 +36,8 @@ usage: SnapshotUtil
  [-p : password]
 </pre>
 
-### Tools included:
+
+### Tools included
 <pre>com.wordnik.system.mongodb.SnapshotUtil</pre>
 This is pretty straight forward, it's meant for taking backups of your data.  The differences between it and mongodump are:
 <li>It splits files based on a configurable size</li>
