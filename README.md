@@ -54,3 +54,13 @@ Operates against either mongodump files or files made with the SnapshotUtil with
 <pre>com.wordnik.system.mongodb.IncrementalBackupUtil</pre>
 
 This queries a master server's oplog and maintains a set of files which can be replayed against a snapshot of the database.  The procedure we use is to snapshot the db (either at the filesystem or with the tool) and apply the incremental changes created by this tool.
+
+The tool looks for a file called "last_timestamp.txt" in the CWD.  This file sets a starting point for querying the oplog--it should contain a single line in the format:
+
+<pre>[time-in-seconds]|[counter]</pre>
+
+The [time-in-seconds] is the seconds since epoch, which you can grab from the OS or from a tool like this:
+
+http://www.esqsoft.com/javascript_examples/date-to-epoch.htm
+
+The counter should typically be set to 0.  As the tool runs, every operation flushed to disk will cause this file to be updated.  If you want to stop a running process, create a file called "stop.txt" in the CWD of the application.  It will cause the app to stop within one second.
