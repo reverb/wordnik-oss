@@ -8,9 +8,9 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
-import com.wordnik.util.RotatingFileWriter;
+import com.wordnik.util.AbstractFileWriter;
 
-public class BackupUtil extends BaseMongoUtil {
+public class SnapshotUtil extends BaseMongoUtil {
 	protected static int THREAD_COUNT = 1;
 	protected static String COLLECTION_STRING;
 
@@ -19,21 +19,21 @@ public class BackupUtil extends BaseMongoUtil {
 			usage();
 			return;
 		}
-		new BackupUtil().run();
+		new SnapshotUtil().run();
 	}
 
 	protected void run(){
 		//	collections to backup
 		List<CollectionInfo> collections = getCollections();
-		
+
 		//	spawn a thread for each job
-		List<BackupThread> threads = new ArrayList<BackupThread>();
+		List<SnapshotThread> threads = new ArrayList<SnapshotThread>();
 
 		int threadCounter = 0;
 		for(CollectionInfo collection : collections){
 			if(threads.size() < (threadCounter+1)){
-				BackupThread thread = new BackupThread(threadCounter);
-				thread.setName("backup_thread_" + collection.name);
+				SnapshotThread thread = new SnapshotThread(threadCounter);
+				thread.setName("backup_thread_" + collection.getName());
 				threads.add(thread);
 			}
 			threads.get(threadCounter).add(collection);
@@ -41,22 +41,22 @@ public class BackupUtil extends BaseMongoUtil {
 				threadCounter = 0;
 			}
 		}
-		for(BackupThread thread : threads){
+		for(SnapshotThread thread : threads){
 			thread.start();
 		}
-		
+
 		//	monitor & report
 		while(true){
 			try{
 				Thread.sleep(5000);
 				boolean isDone = true;
 				StringBuilder b = new StringBuilder();
-				for(BackupThread thread : threads){
+				for(SnapshotThread thread : threads){
 					if(thread.isDone == false){
 						isDone = false;
 						double mbRate = thread.getRate();
 						double complete = thread.getPercentComplete();
-						b.append(thread.currentCollection.name).append(": ").append(PERCENT_FORMAT.format(complete)).append(" (").append(NUMBER_FORMAT.format(mbRate)).append("mb/s)   ");
+						b.append(thread.currentCollection.getName()).append(": ").append(PERCENT_FORMAT.format(complete)).append(" (").append(NUMBER_FORMAT.format(mbRate)).append("mb/s)   ");
 					}
 				}
 				System.out.println(b.toString());
@@ -113,6 +113,7 @@ public class BackupUtil extends BaseMongoUtil {
 					long count = getDb().getCollection(collectionName).count();
 					if(count > 0){
 						CollectionInfo info = new CollectionInfo(collectionName, count);
+						info.setCollectionExists(true);
 						collections.add(info);
 						
 						String indexName = new StringBuilder().append(DATABASE_NAME).append(".").append(collectionName).toString(); 
@@ -142,6 +143,15 @@ public class BackupUtil extends BaseMongoUtil {
 			case 'c':
 				COLLECTION_STRING = args[++i];
 				break;
+			case 'o':
+				OUTPUT_DIRECTORY = args[++i];
+				break;
+			case 's':
+				UNCOMPRESSED_FILE_SIZE_MB = Integer.parseInt(args[++i]);
+				break;
+			case 'Z':
+				COMPRESS_OUTPUT_FILES = true;
+				break;
 			default:
 				int s=parseArg(i, args);
 				if(s >0){
@@ -155,36 +165,26 @@ public class BackupUtil extends BaseMongoUtil {
 	}
 
 	public static void usage(){
-		System.out.println("usage: BackupUtil");
+		System.out.println("usage: SnapshotUtil");
 		System.out.println(" -t : threads");
+		System.out.println(" -o : output directory");
+		System.out.println(" -c : CSV collection string (prefix with ! to exclude)");
+		System.out.println(" [-s : max file size in MB]");
+		System.out.println(" [-Z : compress files]");
+		System.out.println(" [-J : output in JSON (default is BSON)]");
 
 		BaseMongoUtil.usage();
 	}
-	
-	class CollectionInfo {
-		String name;
-		long count;
-		List<BasicDBObject> indexes = new ArrayList<BasicDBObject>();
-		
-		public CollectionInfo(String name, long count){
-			this.name = name;
-			this.count = count;
-		}
 
-		public void addIndex(BasicDBObject index) {
-			indexes.add(index);
-		}
-	}
-
-	class BackupThread extends Thread {
-		long START_TIME = 0;
-		long LAST_OUTPUT = 0;
+	class SnapshotThread extends Thread {
+		long startTime = 0;
+		long lastOutput = 0;
 		int threadId;
 		long writes = 0;
 		boolean isDone = false;
 		CollectionInfo currentCollection = null;
 
-		public BackupThread(int threadId){
+		public SnapshotThread(int threadId){
 			this.threadId = threadId;
 		}
 
@@ -194,17 +194,17 @@ public class BackupUtil extends BaseMongoUtil {
 				writes = 0;
 				currentCollection = info;
 				try{
-					writeConnectivityDetailString(currentCollection.name);
-					if(currentCollection.indexes.size() > 0){
-						writeComment(currentCollection.name, "indexes");
+					writeConnectivityDetailString(currentCollection.getName());
+					if(currentCollection.getIndexes().size() > 0){
+						writeComment(currentCollection.getName(), "indexes");
 					}
-					for(BasicDBObject index : currentCollection.indexes){
-						writeComment(currentCollection.name, index);
+					for(BasicDBObject index : currentCollection.getIndexes()){
+						writeIndex(currentCollection.getName(), index);
 					}
-					LAST_OUTPUT = System.currentTimeMillis();
-					START_TIME = System.currentTimeMillis();
+					lastOutput = System.currentTimeMillis();
+					startTime = System.currentTimeMillis();
 					DB db = getDb();
-					DBCollection collection = db.getCollection(currentCollection.name);
+					DBCollection collection = db.getCollection(currentCollection.getName());
 		            DBCursor cursor = null;
 		            cursor = collection.find();
 		            cursor.sort(new BasicDBObject("_id", 1));
@@ -212,9 +212,9 @@ public class BackupUtil extends BaseMongoUtil {
 		            while (cursor.hasNext() ){
 		                BasicDBObject x = (BasicDBObject) cursor.next();
 		        		++writes;
-		            	write(currentCollection.name, x);
+		            	write(currentCollection.getName(), x);
 		            }
-		            closeWriter(currentCollection.name);
+		            closeWriter(currentCollection.getName());
 				}
 				catch(Exception e){
 					e.printStackTrace();
@@ -224,17 +224,17 @@ public class BackupUtil extends BaseMongoUtil {
 				}
 			}
 		}
-		
+
 		public double getPercentComplete(){
-			return (double)writes / (double)currentCollection.count;
+			return (double) writes / (double)currentCollection.getCount();
 		}
 
 		public double getRate(){
-        	RotatingFileWriter writer = WRITERS.get(currentCollection.name);
+        	AbstractFileWriter writer = WRITERS.get(currentCollection.getName());
 			if(writer != null){
 				long bytesWritten = writer.getTotalBytesWritten();
-				double brate = (double)bytesWritten / ((System.currentTimeMillis() - START_TIME) / 1000.0) / ((double)1048576L);
-				LAST_OUTPUT = System.currentTimeMillis();
+				double brate = (double)bytesWritten / ((System.currentTimeMillis() - startTime) / 1000.0) / ((double)1048576L);
+				lastOutput = System.currentTimeMillis();
 				return brate;
 			}
         	return 0;
