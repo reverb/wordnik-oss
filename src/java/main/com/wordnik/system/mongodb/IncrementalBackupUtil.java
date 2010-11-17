@@ -27,16 +27,17 @@ public class IncrementalBackupUtil extends BaseMongoUtil {
 			usage();
 			return;
 		}
-		
 		new IncrementalBackupUtil().run();
 	}
-	
+
 	void run(){
 		try{
 			DATABASE_NAME="local";
 			OplogTailThread thd = new OplogTailThread();
 			thd.setName("OplogTailThread");
 			thd.start();
+
+			new StopFileMonitor(thd).start();
 		}
 		catch(Exception e){
 			e.printStackTrace();
@@ -78,7 +79,32 @@ public class IncrementalBackupUtil extends BaseMongoUtil {
 
 		BaseMongoUtil.usage();
 	}
-	
+
+	class StopFileMonitor extends Thread {
+		OplogTailThread tailThread;
+		public StopFileMonitor(OplogTailThread tailThread){
+			this.tailThread = tailThread;
+		}
+
+		public void run(){
+			while(true){
+				try{
+					Thread.sleep(1000);
+					File file = new File("stop.txt");
+					if(file.exists()){
+						System.out.println("found stop file, exiting");
+						tailThread.kill = true;
+						file.deleteOnExit();
+						return;
+					}
+				}
+				catch(Exception e){
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
 	class OplogTailThread extends Thread {
 		boolean running = false;
 		boolean kill = false;
@@ -97,8 +123,8 @@ public class IncrementalBackupUtil extends BaseMongoUtil {
             	while(true){
             		try{
 		            	if(kill){
-		            		//	step out on exception
-		            		break;
+		            		System.out.println("exiting thread");
+		            		return;
 		            	}
 	    				DB db = getDb();
 	    				DBCollection oplog = db.getCollection("oplog.$main");
@@ -171,7 +197,7 @@ public class IncrementalBackupUtil extends BaseMongoUtil {
 				}
 			}
 		}
-		
+
 		BSONTimestamp getLastTimestamp() {
 			BufferedReader input = null;
 			try{
