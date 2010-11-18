@@ -113,6 +113,7 @@ public class IncrementalBackupUtil extends BaseMongoUtil {
 		System.out.println(" -o : output directory");
 		System.out.println(" -I : CSV collections to include");
 		System.out.println(" -E : CSV collections to exclude");
+		System.out.println(" [-Z : compress files]");
 
 		BaseMongoUtil.usage();
 	}
@@ -221,6 +222,12 @@ public class IncrementalBackupUtil extends BaseMongoUtil {
 			}
 			finally{
 				saveLastTimestamp(ts);
+				try{
+					closeWriter("oplog");
+				}
+				catch(Exception e){
+					e.printStackTrace();
+				}
 			}
 			running = false;
 		}
