@@ -8,6 +8,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
 
 import org.bson.types.BSONTimestamp;
 
@@ -21,6 +24,8 @@ import com.mongodb.DBObject;
 public class IncrementalBackupUtil extends BaseMongoUtil {
 	protected static String INPUT_DIR;
 	protected final static String OPLOG_LAST_FILENAME = "last_timestamp.txt";
+	protected static String COLLECTIONS_TO_INCLUDE;
+	protected static String COLLECTIONS_TO_EXCLUDE;
 
 	public static void main(String ... args){
 		if(!parseArgs(args)){
@@ -34,6 +39,31 @@ public class IncrementalBackupUtil extends BaseMongoUtil {
 		try{
 			DATABASE_NAME="local";
 			OplogTailThread thd = new OplogTailThread();
+			
+			if(COLLECTIONS_TO_INCLUDE != null){
+				List<String> inclusions = new ArrayList<String>();
+
+				StringTokenizer tk = new StringTokenizer(COLLECTIONS_TO_INCLUDE, ",");
+				while(tk.hasMoreElements()){
+					inclusions.add(tk.nextToken().trim());
+				}
+				if(inclusions.size() > 0){
+					thd.setInclusions(inclusions);
+				}
+			}
+
+			if(COLLECTIONS_TO_EXCLUDE != null){
+				List<String> exclusions = new ArrayList<String>();
+
+				StringTokenizer tk = new StringTokenizer(COLLECTIONS_TO_EXCLUDE, ",");
+				while(tk.hasMoreElements()){
+					exclusions.add(tk.nextToken().trim());
+				}
+				if(exclusions.size() > 0){
+					thd.setExclusions(exclusions);
+				}
+			}
+
 			thd.setName("OplogTailThread");
 			thd.start();
 
@@ -59,6 +89,12 @@ public class IncrementalBackupUtil extends BaseMongoUtil {
 			case 'Z':
 				COMPRESS_OUTPUT_FILES = true;
 				break;
+			case 'I':
+				COLLECTIONS_TO_INCLUDE = args[++i];
+				break;
+			case 'E':
+				COLLECTIONS_TO_EXCLUDE = args[++i];
+				break;
 			default:
 				int s=parseArg(i, args);
 				if(s >0){
@@ -74,8 +110,9 @@ public class IncrementalBackupUtil extends BaseMongoUtil {
 	public static void usage(){
 		System.out.println("usage: IncrementalBackupUtil");
 		System.out.println(" -i : input directory");
-		System.out.println(" -c : CSV collection string (prefix with ! to exclude)");
 		System.out.println(" -o : output directory");
+		System.out.println(" -I : CSV collections to include");
+		System.out.println(" -E : CSV collections to exclude");
 
 		BaseMongoUtil.usage();
 	}
@@ -109,7 +146,17 @@ public class IncrementalBackupUtil extends BaseMongoUtil {
 		boolean running = false;
 		boolean kill = false;
 		long reportInterval = 10000;
+		List<String> inclusions;
+		List<String> exclusions;
 		
+		public void setInclusions(List<String> inclusions){
+			this.inclusions = inclusions;
+		}
+		
+		public void setExclusions(List<String> exclusions){
+			this.exclusions = exclusions;
+		}
+
 		public void run(){
 			running = true;
 			
@@ -139,18 +186,24 @@ public class IncrementalBackupUtil extends BaseMongoUtil {
 	    	            cursor.addOption( Bytes.QUERYOPTION_TAILABLE );
 	    	            cursor.addOption( Bytes.QUERYOPTION_AWAITDATA );
 	    	            long count = 0;
+	    	            long skips = 0;
 			            while (!kill && cursor.hasNext() ){
 			                DBObject x = cursor.next();
-			                count++;
 			                ts = (BSONTimestamp)x.get("ts");
-			                write("oplog", (BasicDBObject)x);
+			                if(shouldWrite(x)){
+			                	write("oplog", (BasicDBObject)x);
+			                	count++;
+			                }
+			                else{
+			                	skips++;
+			                }
 			                if(System.currentTimeMillis() - lastWrite > 1000){
 			    				saveLastTimestamp(ts);
 			    				lastWrite = System.currentTimeMillis();
 			                }
 			                long duration = System.currentTimeMillis() - lastOutput;
 							if(duration > reportInterval){
-								report("oplog", count, System.currentTimeMillis() - startTime);
+								report("oplog", count, skips, System.currentTimeMillis() - startTime);
 								lastOutput = System.currentTimeMillis();
 							}
 			            }
@@ -172,9 +225,33 @@ public class IncrementalBackupUtil extends BaseMongoUtil {
 			running = false;
 		}
 		
-		void report(String collectionName, long count, long duration){
+		boolean shouldWrite(DBObject obj){
+            String ns = (String)obj.get("ns");
+            if(ns == null || "".equals(ns)){
+            	return false;
+            }
+            if(exclusions == null && inclusions == null){
+            	return true;
+            }
+            if(exclusions != null){
+            	if(exclusions.contains(obj.get(ns))){
+            		return false;
+            	}
+            }
+            if(inclusions != null){
+            	if(inclusions.contains(obj.get(ns))){
+            		return true;
+            	}
+            	else{
+            		return false;
+            	}
+            }
+			return true;
+		}
+		
+		void report(String collectionName, long count, long skips, long duration){
 			double brate = (double)count / ((duration) / 1000.0);
-			System.out.println(collectionName + ": " + LONG_FORMAT.format(count) + " records, " + LONG_FORMAT.format(brate) + " req/sec");
+			System.out.println(collectionName + ": " + LONG_FORMAT.format(count) + " records, " + LONG_FORMAT.format(brate) + " req/sec, " + LONG_FORMAT.format(skips) + " skips");
 		}
 
 		void saveLastTimestamp(BSONTimestamp ts){

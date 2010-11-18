@@ -69,7 +69,7 @@ public class SnapshotUtil extends BaseMongoUtil {
 			}
 		}
 	}
-	
+
 	private List<CollectionInfo> getCollections() {
 		List<CollectionInfo> collections = new ArrayList<CollectionInfo>();
 		try{
