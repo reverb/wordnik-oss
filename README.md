@@ -8,7 +8,7 @@ Requires apache ant 1.7 or greater, java 6:
 
 <pre>
 cd src/java
-ant install.ivy
+ant -f install-ivy # only needed if you don't have apache ivy installed
 ant dist
 </pre>
 
