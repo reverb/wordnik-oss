@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<project name="examples" default="install.ivy" basedir=".">
+	<!--ivy:settings file="${basedir}/ivysettings.xml"/-->
+	<property name="ivy.home" value="${user.home}/.ant" />
+	<property name="ivy.install.version" value="2.1.0-rc2" />
+	<property name="ivy.jar.dir" value="${ivy.home}/lib" />
+	<property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar" />
+
+	<!-- sets up ivy (only required for initial setup) -->	
+	<target name="install.ivy" unless="offline" description="downloads ivy for first time use">
+		<mkdir dir="${ivy.jar.dir}" />
+		<!-- download Ivy from web site so that it can be used even without any special installation -->
+		<get src="http://repo2.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar" dest="${ivy.jar.file}" usetimestamp="true" />
+	</target>
+	
+	<target name="build">
+		<echo message="if you can't run ivy, please run the install.ivy ant task"/>
+		
+		<!-- get dependencies -->
+		<!--ivy:retrieve pattern="${basedir}/lib/[artifact]-[revision].[ext]" /-->
+		
+		<!-- clean up -->
+		<echo message="deleting build files"/>
+		<delete quiet="true" dir="build/main"/>
+		<mkdir dir="build" />
+		<mkdir dir="build/main" />
+
+		<!-- build the jar -->
+		<javac srcdir="main" debug="true" destdir="build/main">
+			<classpath>
+				<fileset dir="lib">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+		<jar jarfile="lib/java-examples.jar">
+			<manifest>
+				<attribute name="Main-Class" 
+					value="com.wordnik.examples.WordDataExample"/>
+			</manifest>
+			<fileset dir="build/main" />
+		</jar>
+	</target>
+</project>
