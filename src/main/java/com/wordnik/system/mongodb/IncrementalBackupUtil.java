@@ -129,7 +129,7 @@ public class IncrementalBackupUtil extends BaseMongoUtil {
 				try{
 					Thread.sleep(1000);
 					File file = new File("stop.txt");
-					if(file.exists()){
+					if(file.exists() || tailThread.kill){
 						System.out.println("found stop file, exiting");
 						tailThread.kill = true;
 						file.deleteOnExit();
@@ -188,6 +188,7 @@ public class IncrementalBackupUtil extends BaseMongoUtil {
 	    	            cursor.addOption( Bytes.QUERYOPTION_AWAITDATA );
 	    	            long count = 0;
 	    	            long skips = 0;
+	    	            //	TODO: you can get a com.mongodb.MongoInternalException exception if cursor closed
 			            while (!kill && cursor.hasNext() ){
 			                DBObject x = cursor.next();
 			                ts = (BSONTimestamp)x.get("ts");
@@ -210,6 +211,7 @@ public class IncrementalBackupUtil extends BaseMongoUtil {
 			            }
 		            }
 		            catch(com.mongodb.MongoInternalException ex){
+		            	kill = true;
 		            	saveLastTimestamp(ts);
 		            	ex.printStackTrace();
 		            	break;
