@@ -1,3 +1,15 @@
+// Copyright (C) 2010  Wordnik, Inc.
+//
+// This program is free software: you can redistribute it and/or modify it
+// under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or (at your 
+// option) any later version.  This program is distributed in the hope that it
+// will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+// of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser 
+// General Public License for more details.  You should have received a copy 
+// of the GNU Lesser General Public License along with this program.  If not,
+// see <http://www.gnu.org/licenses/>.
+
 package com.wordnik.system.mongodb;
 
 import java.util.ArrayList;
@@ -11,7 +23,7 @@ import com.mongodb.DBCursor;
 import com.wordnik.util.AbstractFileWriter;
 
 public class SnapshotUtil extends BaseMongoUtil {
-	protected static int THREAD_COUNT = 1;
+	protected static int THREAD_COUNT = 3;
 	protected static String COLLECTION_STRING;
 
 	public static void main(String ... args){
@@ -52,7 +64,7 @@ public class SnapshotUtil extends BaseMongoUtil {
 				boolean isDone = true;
 				StringBuilder b = new StringBuilder();
 				for(SnapshotThread thread : threads){
-					if(thread.isDone == false){
+					if(!thread.isDone){
 						isDone = false;
 						double mbRate = thread.getRate();
 						double complete = thread.getPercentComplete();
@@ -77,6 +89,7 @@ public class SnapshotUtil extends BaseMongoUtil {
 			List<String> collectionsToAdd = new ArrayList<String>();
 			List<String> collectionsToSkip = new ArrayList<String>();
 
+			//	TODO: move to base class
 			boolean exclusionsOnly = true;
 			if(COLLECTION_STRING != null){
 				String[] collectionNames = COLLECTION_STRING.split(",");
@@ -191,15 +204,17 @@ public class SnapshotUtil extends BaseMongoUtil {
 		List<CollectionInfo> collections = new ArrayList<CollectionInfo>();
 		public void run() {
 			for(CollectionInfo info : collections){
+				isDone = false;
 				writes = 0;
 				currentCollection = info;
 				try{
+					removeSummaryFile(currentCollection.getName());
 					writeConnectivityDetailString(currentCollection.getName());
 					if(currentCollection.getIndexes().size() > 0){
-						writeComment(currentCollection.getName(), "indexes");
+						writeToSummaryFile(currentCollection.getName(), "indexes");
 					}
 					for(BasicDBObject index : currentCollection.getIndexes()){
-						writeIndex(currentCollection.getName(), index);
+						writeIndexInfoToSummaryFile(currentCollection.getName(), index);
 					}
 					lastOutput = System.currentTimeMillis();
 					startTime = System.currentTimeMillis();

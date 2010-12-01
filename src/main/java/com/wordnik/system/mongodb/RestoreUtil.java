@@ -1,3 +1,15 @@
+// Copyright (C) 2010  Wordnik, Inc.
+//
+// This program is free software: you can redistribute it and/or modify it
+// under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or (at your 
+// option) any later version.  This program is distributed in the hope that it
+// will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+// of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser 
+// General Public License for more details.  You should have received a copy 
+// of the GNU Lesser General Public License along with this program.  If not,
+// see <http://www.gnu.org/licenses/>.
+
 package com.wordnik.system.mongodb;
 
 import java.io.BufferedInputStream;
@@ -135,7 +147,7 @@ public class RestoreUtil extends BaseMongoUtil {
 	private List<CollectionInfo> getCollections() {
 		List<CollectionInfo> collections = new ArrayList<CollectionInfo>();
 		try{
-			Collection<String> collectionsInDb = getCollectionNamesFromFiles(INPUT_DIR);
+			Collection<String> collectionsFromFiles = getCollectionNamesFromFiles(INPUT_DIR);
 			List<String> collectionsToAdd = new ArrayList<String>();
 			List<String> collectionsToSkip = new ArrayList<String>();
 
@@ -157,7 +169,7 @@ public class RestoreUtil extends BaseMongoUtil {
 				exclusionsOnly = false;
 			}
 			if(exclusionsOnly){
-				for(String collectionName : collectionsInDb){
+				for(String collectionName : collectionsFromFiles){
 					if(!collectionsToSkip.contains(collectionName)){
 						collectionsToAdd.add(collectionName);
 					}
@@ -166,7 +178,7 @@ public class RestoreUtil extends BaseMongoUtil {
 			else{
 				if(collectionsToAdd.size() == 0){
 					//	add everything
-					collectionsToAdd.addAll(collectionsInDb);
+					collectionsToAdd.addAll(collectionsFromFiles);
 				}
 			}
 
