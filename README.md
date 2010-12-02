@@ -64,3 +64,7 @@ The [time-in-seconds] is the seconds since epoch, which you can grab from the OS
 http://www.esqsoft.com/javascript_examples/date-to-epoch.htm
 
 The counter should typically be set to 0.  As the tool runs, every operation flushed to disk will cause this file to be updated.  If you want to stop a running process, create a file called "stop.txt" in the CWD of the application.  It will cause the app to stop within one second.
+
+<pre>com.wordnik.system.mongodb.ReplayUtil</pre>
+
+Takes a series of files created by the <pre>IncrementalBackupUtil</pre> and replays them.  The tool allows applying the operations against alternate databases and collections.  It also supports skipping records which fall outside a specified timepoint, if for instance you want to roll back to a particular point in time.
