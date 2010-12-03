@@ -17,6 +17,12 @@ import java.util.List;
 
 import com.mongodb.BasicDBObject;
 
+/**
+ * Stores info about a collection
+ * 
+ * @author tony
+ *
+ */
 public class CollectionInfo {
 	private boolean collectionExists = true;
 	private String name;
