@@ -7,7 +7,6 @@ These are tools used to maintain a MongoDB deployment.
 Requires apache ant 1.7 or greater, java 6:
 
 <pre>
-cd src/java
 ant -f install-ivy # only needed if you don't have apache ivy installed
 ant dist
 </pre>
