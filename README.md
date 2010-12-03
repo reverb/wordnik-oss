@@ -86,7 +86,7 @@ Save incremental backup on the database "ugc" with collection "login_info" to th
 
 #### com.wordnik.system.mongodb.ReplayUtil
 
-Takes a series of files created by the <pre>IncrementalBackupUtil</pre> and replays them.  The tool allows applying the operations against alternate databases and collections.  It also supports skipping records which fall outside a specified timepoint, if for instance you want to roll back to a particular point in time.
+Takes a series of files created by the IncrementalBackupUtil and replays them.  The tool allows applying the operations against alternate databases and collections.  It also supports skipping records which fall outside a specified timepoint, if for instance you want to roll back to a particular point in time.
 
 Note that not all operations can be remapped, especially adding indexes and applying database-level commands.
 
