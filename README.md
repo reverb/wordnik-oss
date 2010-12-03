@@ -40,12 +40,11 @@ usage: SnapshotUtil
 ### Tools included
 <pre>com.wordnik.system.mongodb.SnapshotUtil</pre>
 This is pretty straight forward, it's meant for taking backups of your data.  The differences between it and mongodump are:
-<li>It splits files based on a configurable size</li>
-<li>It will let you select what you want to backup with inclusion and exclusion operators</li>
-<li>It will automatically gzip the files as it rotates them</li>
-<li>It supports a JSON export</li>
-<li>It runs a configurable thread pool so you can backup multiple collections simultaneously</li>
-
+* It splits files based on a configurable size
+* It will let you select what you want to backup with inclusion and exclusion operators
+* It will automatically gzip the files as it rotates them
+* It supports a JSON export
+* It runs a configurable thread pool so you can backup multiple collections simultaneously
 
 <pre>com.wordnik.system.mongodb.RestoreUtil</pre>
 
