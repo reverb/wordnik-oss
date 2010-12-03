@@ -41,15 +41,15 @@ usage: SnapshotUtil
 ####com.wordnik.system.mongodb.SnapshotUtil
 This is pretty straight forward, it's meant for taking backups of your data.  Some differences between it and mongodump are:
 
-<li>It splits files based on a configurable size</li>
+<li>- It splits files based on a configurable size</li>
 
-<li>It will let you select what you want to backup with inclusion and exclusion operators</li>
+<li>- It will let you select what you want to backup with inclusion and exclusion operators</li>
 
-<li>It will automatically gzip the files as it rotates them</li>
+<li>- It will automatically gzip the files as it rotates them</li>
 
-<li>It supports a JSON export</li>
+<li>- It supports a JSON export</li>
 
-<li>It runs a configurable thread pool so you can backup multiple collections simultaneously</li>
+<li>- It runs a configurable thread pool so you can backup multiple collections simultaneously</li>
 
 examples:
 backup localhost/test to folder backup
