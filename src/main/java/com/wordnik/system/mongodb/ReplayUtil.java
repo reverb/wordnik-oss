@@ -34,14 +34,13 @@ import org.bson.BasicBSONObject;
 import org.bson.types.BSONTimestamp;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
+import com.wordnik.util.PrintFormat;
 
-public class ReplayUtil extends BaseMongoUtil {
+public class ReplayUtil extends MongoUtil {
 	protected static String INPUT_DIR;
 	protected static String COLLECTION_STRING;
-	protected static String COLLECTION_RETARGET_STRING;
-	protected static String DATABASE_RETARGET_STRING;
+	protected static String COLLECTION_MAPPING_STRING;
+	protected static String DATABASE_MAPPING_STRING;
 	protected static Map<String, String> COLLECTION_MAPPING = new HashMap<String, String>();
 	protected static Map<String, String> DATABASE_MAPPING = new HashMap<String, String>();
 	protected static Set<String> COLLECTIONS_TO_SKIP = new HashSet<String>();
@@ -50,6 +49,11 @@ public class ReplayUtil extends BaseMongoUtil {
 	protected static BSONTimestamp BEFORE_TIMESTAMP = null;
 	protected static boolean ONLY_COLLECTION_EXCLUSIONS = true;
 	protected static Map<String, String> NAMESPACE_COLLECTION_MAP = new HashMap<String, String>();
+	
+	protected static String DEST_DATABASE_NAME = "test";
+	protected static String DEST_DATABASE_USER_NAME = null;
+	protected static String DEST_DATABASE_PASSWORD = null;
+	protected static String DEST_DATABASE_HOST = "localhost";
 
 	protected static long REPORT_INTERVAL = 10000;
 
@@ -81,20 +85,20 @@ public class ReplayUtil extends BaseMongoUtil {
 		}
 	}
 
-	protected static void createMappings(){
-		if(DATABASE_RETARGET_STRING != null){
-			StringTokenizer tk = new StringTokenizer(DATABASE_RETARGET_STRING, ",");
+	protected static void createMappings(String databaseMappingString, String collectionMappingString, Map<String, String> databaseMappings, Map<String, String> collectionMappings){
+		if(databaseMappingString != null){
+			StringTokenizer tk = new StringTokenizer(databaseMappingString, ",");
 			while(tk.hasMoreElements()){
 				String[] split = tk.nextToken().split("\\=");
-				DATABASE_MAPPING.put(split[0], split[1]);
+				databaseMappings.put(split[0], split[1]);
 			}
 		}
-		
-		if(COLLECTION_RETARGET_STRING != null){
-			StringTokenizer tk = new StringTokenizer(COLLECTION_RETARGET_STRING, ",");
+
+		if(collectionMappingString != null){
+			StringTokenizer tk = new StringTokenizer(collectionMappingString, ",");
 			while(tk.hasMoreElements()){
 				String[] split = tk.nextToken().split("\\=");
-				COLLECTION_MAPPING.put(split[0], split[1]);
+				collectionMappings.put(split[0], split[1]);
 			}
 		}	
 	}
@@ -103,21 +107,31 @@ public class ReplayUtil extends BaseMongoUtil {
 		//	decide what collections to process
 		selectCollections();
 
-		//	get mappings
-		createMappings();
-		
+		OplogReplayWriter util = new OplogReplayWriter();
+
+		//	create any re-mappings
+		Map<String, String> collectionMappings = new HashMap<String, String>();
+		Map<String, String> databaseMappings = new HashMap<String, String>();
+		createMappings(DATABASE_MAPPING_STRING, COLLECTION_MAPPING_STRING, databaseMappings, collectionMappings);
+
+		//	configure the writer
+		util.setCollectionMappings(collectionMappings);
+		util.setDatabaseMappings(databaseMappings);
+		util.setDestinationDatabaseUsername(DEST_DATABASE_USER_NAME);
+		util.setDestinationDatabasePassword(DEST_DATABASE_PASSWORD);
+		util.setDestinationDatabaseHost(DEST_DATABASE_HOST);
+
 		try{
 			File[] files = new File(INPUT_DIR).listFiles();
 			if(files != null){
 				List<File> filesToProcess = new ArrayList<File>();
 				for(File file : files){
-					filesToProcess.add(file);
+					if(file.getName().indexOf(".bson") > 0){
+						filesToProcess.add(file);
+					}
 				}
 				long operationsRead = 0;
 				long operationsSkipped = 0;
-				long insertCount = 0;
-				long updateCount = 0;
-				long deleteCount = 0;
 				long lastOutput = System.currentTimeMillis();
 				for(File file : filesToProcess){
 					System.out.println("replaying file " + file.getName());
@@ -143,34 +157,13 @@ public class ReplayUtil extends BaseMongoUtil {
 
 							BSONTimestamp operationTimestamp = (BSONTimestamp)dbo.get("ts");
 							String namespace = dbo.getString("ns");
-							String operationType = dbo.getString("op");
-							BasicDBObject operation = new BasicDBObject((BasicBSONObject)dbo.get("o"));
-							String database = getDatabaseMapping(namespace);
-							String collection = getCollectionMapping(namespace);
-							
+							String collection = util.getUnmappedCollectionFromNamespace(namespace);
+
 							boolean shouldProcess = shouldProcessRecord(collection, operationTimestamp);
 
-							if(database != null && collection != null && shouldProcess){
+							if(collection != null && shouldProcess){
+								util.processRecord(dbo);
 								operationsRead++;
-								DB db = super.getDb(database);
-								DBCollection coll = db.getCollection(collection);
-
-								if("i".equals(operationType)){
-									insertCount++;
-									coll.insert(operation);
-								}
-								else if("d".equals(operationType)){
-									deleteCount++;
-									coll.remove(operation);
-								}
-								else if("u".equals(operationType)){
-									updateCount++;
-									BasicDBObject o2 = new BasicDBObject((BasicBSONObject)dbo.get("o2"));
-									coll.update(o2, operation);
-								}
-								else{
-									System.out.println("operation type : " + operationType);
-								}
 							}
 							else{
 								operationsSkipped++;
@@ -178,7 +171,7 @@ public class ReplayUtil extends BaseMongoUtil {
 
 							long durationSinceLastOutput = System.currentTimeMillis() - lastOutput;
 							if(durationSinceLastOutput > REPORT_INTERVAL){
-								report(insertCount, updateCount, deleteCount, operationsRead, operationsSkipped, durationSinceLastOutput);
+								report(util.getInsertCount(), util.getUpdateCount(), util.getDeleteCount(), operationsRead, operationsSkipped, durationSinceLastOutput);
 								lastOutput = System.currentTimeMillis();
 							}
 						}
@@ -221,73 +214,6 @@ public class ReplayUtil extends BaseMongoUtil {
 		return shouldProcess;
 	}
 
-	/**
-	 * returns a collection name from FQ namespace.  Assumes database name never has "." in it.
-	 * 
-	 * @param namespace
-	 * @return
-	 */
-	public String getCollectionMapping(String namespace) {
-		if(NAMESPACE_COLLECTION_MAP.containsKey(namespace)){
-			return NAMESPACE_COLLECTION_MAP.get(namespace);
-		}
-		String[] parts = namespace.split("\\.");
-		if(parts == null || parts.length == 1){
-			return null;
-		}
-		String collection = null;
-		if(parts.length == 2){
-			collection = parts[1];
-			NAMESPACE_COLLECTION_MAP.put(namespace, collection);
-		}
-		else{
-			collection = namespace.substring(parts[0].length()+1);
-		}
-		
-		collection = remapCollection(collection);
-		NAMESPACE_COLLECTION_MAP.put(namespace, collection);
-
-		return collection;
-	}
-
-	/**
-	 * remaps a collection if mapping exists, returns original if not
-	 * 
-	 * @param collection
-	 * @return
-	 */
-	public String remapCollection(String collection){
-		String o = COLLECTION_MAPPING.get(collection);
-		return o == null ? collection:o;
-	}
-
-	/**
-	 * returns a database name from FQ namespace.  Assumes database name never has "." in it.
-	 * 
-	 * @param namespace
-	 * @return
-	 */
-	public String getDatabaseMapping (String namespace) {
-		String[] parts = namespace.split("\\.");
-		if(parts == null || parts.length == 1){
-			return null;
-		}
-		String databaseName = parts[0];
-		databaseName = remapDatabase(databaseName);
-		return databaseName;
-	}
-
-	/**
-	 * remaps a database name if mapping exists, returns original if not
-	 * 
-	 * @param databaseName
-	 * @return
-	 */
-	public String remapDatabase(String databaseName){
-		String o = DATABASE_MAPPING.get(databaseName);
-		return o == null ? databaseName:o;
-	}
-
 	public static boolean parseArgs(String...args){
 		for (int i = 0; i < args.length; i++) {
 			switch (args[i].charAt(1)) {
@@ -298,10 +224,10 @@ public class ReplayUtil extends BaseMongoUtil {
 				COLLECTION_STRING = args[++i];
 				break;
 			case 'R':
-				DATABASE_RETARGET_STRING = args[++i];
+				DATABASE_MAPPING_STRING = args[++i];
 				break;
 			case 'r':
-				COLLECTION_RETARGET_STRING = args[++i];
+				COLLECTION_MAPPING_STRING = args[++i];
 				break;
 			case 'a':
 				try{
@@ -323,12 +249,16 @@ public class ReplayUtil extends BaseMongoUtil {
 					throw new RuntimeException("invalid date supplied");
 				}
 				break;
+			case 'u':
+				DEST_DATABASE_USER_NAME = args[++i];
+				break;
+			case 'p':
+				DEST_DATABASE_PASSWORD = args[++i];
+				break;
+			case 'h':
+				DEST_DATABASE_HOST = args[++i];
+				break;
 			default:
-				int s=parseArg(i, args);
-				if(s >0){
-					i+=s;
-					break;
-				}
 				return false;
 			}
 		}
@@ -337,7 +267,7 @@ public class ReplayUtil extends BaseMongoUtil {
 
 	void report(long inserts, long updates, long deletes, long totalCount, long skips, long duration){
 		double brate = (double)totalCount / ((duration) / 1000.0);
-		System.out.println("inserts: " + LONG_FORMAT.format(inserts) + ", updates: " + LONG_FORMAT.format(updates) + ", deletes: " + LONG_FORMAT.format(deletes) + ", skips: " + LONG_FORMAT.format(skips) + " (" + LONG_FORMAT.format(brate) + " req/sec)");
+		System.out.println("inserts: " + PrintFormat.LONG_FORMAT.format(inserts) + ", updates: " + PrintFormat.LONG_FORMAT.format(updates) + ", deletes: " + PrintFormat.LONG_FORMAT.format(deletes) + ", skips: " + PrintFormat.LONG_FORMAT.format(skips) + " (" + PrintFormat.LONG_FORMAT.format(brate) + " req/sec)");
 	}
 
 	public static void usage(){
@@ -348,7 +278,8 @@ public class ReplayUtil extends BaseMongoUtil {
 		System.out.println(" -R : database re-targeting (format: {SOURCE}={TARGET}");
 		System.out.println(" -a : only process entries after this timestamp");
 		System.out.println(" -b : only process entries before this timestamp");
-
-		BaseMongoUtil.usage();
+		System.out.println(" -h : destination hostname");
+		System.out.println(" [-u : username]");
+		System.out.println(" [-p : password]");
 	}
 }

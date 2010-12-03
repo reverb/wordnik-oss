@@ -33,13 +33,18 @@ import org.bson.BasicBSONObject;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
+import com.wordnik.util.PrintFormat;
 
-public class RestoreUtil extends BaseMongoUtil {
+public class RestoreUtil extends MongoUtil {
 	protected static String INPUT_DIR;
 	protected static String COLLECTION_STRING;
 	protected static boolean DROP_EXISTING = false;
+	
+	protected static String DATABASE_HOST = "localhost";
+	protected static String DATABASE_NAME = null;
+	protected static String DATABASE_USER_NAME = null;
+	protected static String DATABASE_PASSWORD = null;
 
 	public static void main(String ... args){
 		if(!parseArgs(args)){
@@ -73,7 +78,7 @@ public class RestoreUtil extends BaseMongoUtil {
 			if(files != null){
 				List<File> filesToProcess = new ArrayList<File>();
 				for(File file : files){
-					if(file.getName().startsWith(info.getName())){
+					if(file.getName().startsWith(info.getName()) && file.getName().indexOf(".bson") > 0){
 						filesToProcess.add(file);
 					}
 				}
@@ -81,7 +86,8 @@ public class RestoreUtil extends BaseMongoUtil {
 				if(DROP_EXISTING){
 					try{
 						System.out.println("Dropping collection " + info.getName());
-						DBCollection coll = getDb().getCollection(info.getName());
+						DB db = DBConnector.getDb(DATABASE_HOST, DATABASE_USER_NAME, DATABASE_PASSWORD, DATABASE_NAME);
+						DBCollection coll = db.getCollection(info.getName());
 						coll.drop();
 					}
 					catch(Exception e){
@@ -94,11 +100,10 @@ public class RestoreUtil extends BaseMongoUtil {
 				long lastOutput = System.currentTimeMillis();
 				for(File file : filesToProcess){
 					System.out.println("restoring file " + file.getName() + " to collection " + info.getName());
-					BufferedInputStream inputStream = null;
+					InputStream inputStream = null;
 					try{
 						if(file.getName().endsWith(".gz")){
-							InputStream is = new GZIPInputStream(new FileInputStream(file));
-							inputStream = new BufferedInputStream(is);
+							inputStream = new GZIPInputStream(new FileInputStream(file));
 						}
 						else{
 							inputStream = new BufferedInputStream(new FileInputStream(file));
@@ -122,6 +127,9 @@ public class RestoreUtil extends BaseMongoUtil {
 							}
 						}
 					}
+					catch(java.io.EOFException e){
+						break;
+					}
 					finally{
 						inputStream.close();
 					}
@@ -135,11 +143,11 @@ public class RestoreUtil extends BaseMongoUtil {
 
 	void report(String collectionName, long count, long duration){
 		double brate = (double)count / ((duration) / 1000.0);
-		System.out.println(collectionName + ": " + LONG_FORMAT.format(count) + " records, " + LONG_FORMAT.format(brate) + " req/sec");
+		System.out.println(collectionName + ": " + PrintFormat.LONG_FORMAT.format(count) + " records, " + PrintFormat.LONG_FORMAT.format(brate) + " req/sec");
 	}
 
-	private void write(CollectionInfo info, DBObject dbo) throws Exception {
-		DB db = getDb();
+	protected void write(CollectionInfo info, DBObject dbo) throws Exception {
+		DB db = DBConnector.getDb(DATABASE_HOST, DATABASE_USER_NAME, DATABASE_PASSWORD, DATABASE_NAME);
 		DBCollection coll = db.getCollection(info.getName());
 		coll.save(dbo);
 	}
@@ -151,22 +159,21 @@ public class RestoreUtil extends BaseMongoUtil {
 			List<String> collectionsToAdd = new ArrayList<String>();
 			List<String> collectionsToSkip = new ArrayList<String>();
 
-			boolean exclusionsOnly = true;
-			if(COLLECTION_STRING != null){
-				String[] collectionNames = COLLECTION_STRING.split(",");
-				for(String collectionName : collectionNames){
-					if(collectionName.startsWith("!")){
-						//	skip it
-						collectionsToSkip.add(collectionName);
-					}
-					else{
-						exclusionsOnly = false;
+			selectCollections(COLLECTION_STRING, collectionsToAdd, collectionsToSkip);
+
+			boolean exclusionsOnly = collectionsToAdd.contains("*");
+			if(exclusionsOnly){
+				for(String collectionName : collectionsFromFiles){
+					if(!collectionsToSkip.contains(collectionName)){
 						collectionsToAdd.add(collectionName);
 					}
 				}
 			}
 			else{
-				exclusionsOnly = false;
+				if(collectionsToAdd.size() == 0){
+					//	add everything
+					collectionsToAdd.addAll(collectionsFromFiles);
+				}
 			}
 			if(exclusionsOnly){
 				for(String collectionName : collectionsFromFiles){
@@ -181,24 +188,9 @@ public class RestoreUtil extends BaseMongoUtil {
 					collectionsToAdd.addAll(collectionsFromFiles);
 				}
 			}
-
-			for(String collectionName : collectionsToAdd){
-				if(!"system.indexes".equals(collectionName) && !"system.users".equals(collectionName)){
-					long count = getDb().getCollection(collectionName).count();
-					CollectionInfo info = new CollectionInfo(collectionName, count);
-					if(count > 0){
-						info.setCollectionExists(true);
-					}
-					collections.add(info);
-
-					String indexName = new StringBuilder().append(DATABASE_NAME).append(".").append(collectionName).toString(); 
-					DBCursor cur = getDb().getCollection("system.indexes").find(new BasicDBObject("ns", indexName));
-					if(cur != null){
-						while(cur.hasNext()){
-							info.addIndex((BasicDBObject)cur.next());
-						}
-					}
-				}
+			for(String collection : collectionsToAdd){
+				if(!"*".equals(collection))
+					collections.add(new CollectionInfo(collection, 0));
 			}
 		}
 		catch(Exception e){
@@ -246,12 +238,19 @@ public class RestoreUtil extends BaseMongoUtil {
 			case 'D':
 				DROP_EXISTING = true;
 				break;
+			case 'd':
+				DATABASE_NAME = args[++i];
+				break;
+			case 'u':
+				DATABASE_USER_NAME = args[++i];
+				break;
+			case 'p':
+				DATABASE_PASSWORD = args[++i];
+				break;
+			case 'h':
+				DATABASE_HOST = args[++i];
+				break;
 			default:
-				int s=parseArg(i, args);
-				if(s >0){
-					i+=s;
-					break;
-				}
 				return false;
 			}
 		}
@@ -259,12 +258,14 @@ public class RestoreUtil extends BaseMongoUtil {
 	}
 
 	public static void usage(){
-		System.out.println("usage: BackupUtil");
+		System.out.println("usage: RestoreUtil");
 		System.out.println(" -i : input directory");
 		System.out.println(" -c : CSV collection string (prefix with ! to exclude)");
 		System.out.println(" -D : drop existing collections");
-
-		BaseMongoUtil.usage();
+		System.out.println(" -h : target database host[:port]");
+		System.out.println(" -d : target database name");
+		System.out.println(" [-u : target database username]");
+		System.out.println(" [-p : target database password]");
 	}
 
 	class FilenameComparator implements Comparator<File> {
