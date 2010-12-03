@@ -51,6 +51,10 @@ public class RestoreUtil extends MongoUtil {
 			usage();
 			return;
 		}
+		if(DATABASE_NAME == null){
+			usage();
+			return;
+		}
 		new RestoreUtil().run();
 	}
 
