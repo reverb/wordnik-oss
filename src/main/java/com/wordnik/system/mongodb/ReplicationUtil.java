@@ -13,7 +13,11 @@
 package com.wordnik.system.mongodb;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
 
 public class ReplicationUtil extends MongoUtil {
 	protected static String DATABASE_HOST = null;
@@ -23,7 +27,10 @@ public class ReplicationUtil extends MongoUtil {
 	protected static String DEST_DATABASE_USER_NAME = null;
 	protected static String DEST_DATABASE_PASSWORD = null;
 	protected static String DEST_DATABASE_HOST = null;
+	protected static String DEST_DATABASE_NAME = null;
 	
+	protected static String DATABASE_MAPPING = null;
+
 	protected static String OPLOG_LAST_FILENAME = "last_timestamp.txt";
 	protected static String COLLECTIONS_STRING;
 
@@ -47,6 +54,16 @@ public class ReplicationUtil extends MongoUtil {
 	protected void run(){
 		//	create and configure a replication target processor
 		OplogReplayWriter util = new OplogReplayWriter();
+		
+		if(DATABASE_MAPPING != null){
+			Map<String,String> mappings = getMappings(DATABASE_MAPPING);
+			for(Iterator<String> x = mappings.keySet().iterator(); x.hasNext();){
+				String key = x.next();
+				String value = mappings.get(key);
+				util.addDatabaseMapping(key, value);
+			}
+		}
+
 		util.setDestinationDatabaseUsername(DEST_DATABASE_USER_NAME);
 		util.setDestinationDatabasePassword(DEST_DATABASE_PASSWORD);
 		util.setDestinationDatabaseHost(DEST_DATABASE_HOST);
@@ -68,6 +85,24 @@ public class ReplicationUtil extends MongoUtil {
 		catch(Exception e){
 			e.printStackTrace();
 		}
+	}
+
+	private Map<String,String> getMappings(String mappingString) {
+		Map<String,String> output = new HashMap<String,String>();
+		StringTokenizer tk = new StringTokenizer(mappingString, ",");
+
+		while(tk.hasMoreTokens()){
+			String token = tk.nextToken();
+			StringTokenizer tk2 = new StringTokenizer(token, ":");
+			if(tk2.countTokens() == 2){
+				String src = tk2.nextToken();
+				String dest = tk2.nextToken();
+				System.out.println(src + ", " + dest);
+				output.put(src,dest);
+			}
+		}
+
+		return output;
 	}
 
 	public static boolean parseArgs(String...args){
@@ -94,6 +129,12 @@ public class ReplicationUtil extends MongoUtil {
 			case 'h':
 				DATABASE_HOST = args[++i];
 				break;
+			case 'd':
+				DEST_DATABASE_NAME = args[++i];
+				break;
+			case 'm':
+				DATABASE_MAPPING = args[++i];
+				break;
 			default:
 				System.out.println("unknown argument " + args[i]);
 				return false;
@@ -111,5 +152,6 @@ public class ReplicationUtil extends MongoUtil {
 		System.out.println(" -H : target database host[:port]");
 		System.out.println(" [-U : target database username]");
 		System.out.println(" [-P : target database password]");
+		System.out.println(" -m : mapping between source + dest databases (a:a',b:b')");
 	}
 }
