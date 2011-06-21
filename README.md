@@ -104,11 +104,14 @@ Replay files in folder backups to host localhost:27018, collection test1, and ma
 <pre>./bin/run.sh com.wordnik.system.mongodb.ReplayUtil -i backups  -h localhost:27018 -r test1=test5 -c test1</pre>
 
 #### com.wordnik.system.mongodb.ReplicationUtil
-Tool to replicate from server to server.  Use caution with the config to avoid getting in a replication loop!
+Tool to replicate from server to server.  Use caution with the config to avoid getting in a replication loop!  You can add mappings to replicate from one database to another.
 
 examples:
 Replicate everything from localhost:27017 to localhost:27018
 <pre>./bin/run.sh com.wordnik.system.mongodb.ReplicationUtil -h localhost -H localhost:27018</pre>
+
+Replicate everything from localhost:27017 to localhost:27018, and map from source database "foo" to target database "bar"
+<pre>./bin/run.sh com.wordnik.system.mongodb.ReplicationUtil -h localhost -H localhost:27018 -m foo:bar</pre>
 
 Replicate collection test.foo from localhost:27017 to localhost:27018, including commands, index operations
 <pre>./bin/run.sh com.wordnik.system.mongodb.ReplicationUtil -h localhost -H localhost:27018 -c test.foo,test.$cmd,test.system.indexes</pre>
