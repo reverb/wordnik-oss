@@ -5,10 +5,8 @@ This project contains a number of tools for administering a MongoDB Deployment
 
 ### To run
 <pre>
-cd dist (or wherever you unzipped the distribution)
 ./bin/run.sh <tool-class> <options>
 </pre>
-
 
 ### To get tool options
 Run any tool with a -? parameter to see the options:
