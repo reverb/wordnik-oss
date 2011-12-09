@@ -1,0 +1,192 @@
+package com.wordnik.mongo.connection
+
+import java.net.UnknownHostException
+import java.util.StringTokenizer
+import com.mongodb._
+import java.util.logging.Logger
+import scala.collection.JavaConversions._
+import scala.collection.mutable._
+
+object SchemaType {
+  val READ_ONLY = 1
+  val READ_WRITE = 2
+}
+
+object MongoDBConnectionManager {
+  val LOGGER = Logger.getLogger(MongoDBConnectionManager.getClass.getName)
+  val mongos = new HashMap[String, Member]
+  val pool = new HashMap[String, List[DBServer]]
+
+  @throws(classOf[PersistenceException])
+  def getConnection(schemaName: String, schemaType: Int): DB = {
+    LOGGER.finest("getting from, key: " + schemaName + ", schemaType: " + schemaType)
+
+    val snl = schemaName.toLowerCase
+    if (!pool.contains(snl)) throw new PersistenceException("no configurations found for " + schemaName)
+
+    val servers = pool(snl)
+    var output: Option[DB] = None
+
+    schemaType match {
+      //	read write => rs or master
+      case SchemaType.READ_WRITE => {
+        servers.foreach(server => {
+          if (server.replicationType == Member.RS || server.replicationType == Member.M) {
+            server.username match {
+              case Some(user) => {
+                if (!server.db.isAuthenticated)
+                  server.db.authenticate(user, server.password.toCharArray)
+              }
+              case _ =>
+            }
+            output = Some(server.db)
+          }
+        })
+      }
+      case _ => {
+        //  slaves => rs or slave unless only one master
+        servers.foreach(server => {
+          if (server.replicationType == Member.RS || server.replicationType == Member.S) {
+            server.username match {
+              case Some(user) => {
+                if (!server.db.isAuthenticated)
+                  server.db.authenticate(user, server.password.toCharArray)
+              }
+              case _ => server.db.slaveOk
+            }
+            output = Some(server.db)
+          }
+        })
+        //this means there are no slaves so it is ok to get connection from any server
+        if (output == None) {
+          //	user master anyway
+          output = Some(servers(0).db)
+        }
+      }
+    }
+
+    output match {
+      case Some(db) => db
+      case _ => throw new PersistenceException("no configurations found for " + schemaName)
+    }
+  }
+
+  @throws(classOf[PersistenceException])
+  def getConnection(schemaName: String, h: String, schema: String, u: String, pw: String, schemaType: Int): DB = {
+    if (h.indexOf(":") > 0) getConnection(schemaName, h.split(":")(0), h.split(":")(1).toInt, schema, u, pw, schemaType)
+    else getConnection(schemaName, h, 27017, schema, u, pw, schemaType)
+  }
+
+  @throws(classOf[PersistenceException])
+  def getConnection(schemaName: String, h: String, p: Int, schema: String, u: String, pw: String, schemaType: Int): DB = {
+    var host: String = h
+    var port = p
+    val username = {
+      if (null != u && u.trim != "") Some(u)
+      else None
+    }
+    val password = {
+      if (null == pw) ""
+      else pw
+    }
+    try {
+      if (null == host) host = "localhost"
+      if (null == port || port <= 0) port = 27017
+
+      LOGGER.finest("getting connection to " + host + ":" + port + "/" + schema + " with username: " + username + ", password: " + password)
+
+      val schemaId = host + ":" + port + ":" + schema
+      val db = mongos.contains(schemaId) match {
+        case true => {
+          LOGGER.finest("getting " + schemaId + " from map")
+          val db = mongos(schemaId).mongo.getDB(schema)
+          username match {
+            case Some(username) => db.authenticate(username, password.toCharArray)
+            case _ =>
+          }
+          db
+        }
+        case _ => {
+          LOGGER.finest("creating " + schemaId)
+          val sa = new ServerAddress(host, port)
+          var mongo = new Mongo(sa)
+
+          var db = mongo.getDB(schema)
+          val replicationType = detectReplicationType(db, username, password)
+
+          if (replicationType == Member.RS) {
+            mongo = new Mongo(List(sa))
+            db = mongo.getDB(schema)
+          }
+          mongos += schema -> new Member(replicationType, mongo)
+          addServer(schemaName, schema, db: DB, username, password, replicationType)
+          db
+        }
+      }
+      db
+    } catch {
+      case e: Exception => {
+        LOGGER.severe("can't get connection to " + host + ":" + port + "/" + schema + " with username " + username + ", password " + password);
+        throw new PersistenceException(e);
+      }
+    }
+  }
+
+  def detectReplicationType(db: DB, username: Option[String], password: String) = {
+    try {
+      //	check it
+      var stat: String = null
+      username match {
+        case Some(username) => {
+          db.authenticate(username, password.toCharArray)
+          stat = db.command("isMaster").toString
+          if (stat.indexOf("\"ismaster\" : true") > 0) Member.M
+          else Member.S
+        }
+        case _ => {
+          stat = db.command("isMaster").toString
+          if (stat.indexOf("setName") > 0) {
+            //  is a replica set
+            Member.RS
+          } else {
+            if (stat.indexOf("\"ismaster\" : true") > 0) Member.M
+            else if (stat.indexOf("\"ismaster\" : false") > 0) Member.S
+            else Member.UNKNOWN
+          }
+        }
+      }
+    } catch {
+      case e: Exception => {
+        e.printStackTrace
+        Member.UNKNOWN
+      }
+      case _ =>
+        throw new PersistenceException("Failed to detect replication type")
+    }
+  }
+
+  def addServer(schemaName: String, schema: String, db: DB, username: Option[String], password: String, replicationType: Int) = {
+    val snl = schemaName.toLowerCase
+    if (!pool.contains(snl)) {
+      val serverList = new ListBuffer[DBServer]
+      pool += snl -> List[DBServer]()
+    }
+    val serverList = new ListBuffer[DBServer]
+    pool(snl).foreach(server => { serverList += server })
+
+    serverList += new DBServer(db, username, password, replicationType)
+    pool += snl -> serverList.toList
+    LOGGER.finest("adding to pool, key: " + snl + ", server: " + db)
+  }
+}
+
+class DBServer(val db: DB, val username: Option[String], val password: String, val replicationType: Int)
+
+object Member {
+  val RS = 1
+  val M = 2
+  val S = 3
+  val UNKNOWN = 4
+}
+
+class Member(val memberType: Int, val mongo: Mongo)

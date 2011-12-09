@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <groupId>com.wordnik</groupId>
+        <artifactId>wordnik-oss-project</artifactId>
+        <version>1.01-SNAPSHOT</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.wordnik</groupId>
+    <artifactId>wordnik-oss-modules</artifactId>
+    <version>1.01-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>wordnik-oss-modules</name>
+    <url>https://github.com/wordnik/wordnik-oss</url>
+
+    <modules>
+        <module>swagger-jaxrs-utils</module>
+        <module>common-utils</module>
+        <module>mongo-utils</module>
+        <module>mongo-admin-utils</module>
+    </modules>
+</project>
