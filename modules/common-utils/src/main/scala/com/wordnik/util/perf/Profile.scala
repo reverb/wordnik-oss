@@ -65,6 +65,18 @@ class ProfileCounter(@BeanProperty var key: String) {
       avgDuration = totalDuration.toDouble / count.toDouble
     }
   }
+
+  override def toString = {
+    val sb = new StringBuilder
+    sb.append("{key : ").append(key)
+      .append(", count : ").append(count)
+      .append(", totalDuration : ").append(totalDuration)
+      .append(", minDuration : ").append(minDuration)
+      .append(", avgDuration : ").append(avgDuration)
+      .append(", maxDuration : ").append(maxDuration)
+      .append("}")
+    sb.toString
+  }
 }
 
 case class Profile(key: String) {
