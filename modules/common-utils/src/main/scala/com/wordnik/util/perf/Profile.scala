@@ -68,7 +68,7 @@ class ProfileCounter(@BeanProperty var key: String) {
 
   override def toString = {
     val sb = new StringBuilder
-    sb.append("{key : ").append(key)
+    sb.append("{key : \"").append(key).append("\"")
       .append(", count : ").append(count)
       .append(", totalDuration : ").append(totalDuration)
       .append(", minDuration : ").append(minDuration)
