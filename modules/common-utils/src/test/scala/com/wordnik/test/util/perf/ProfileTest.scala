@@ -74,7 +74,6 @@ class ProfileTest extends FlatSpec with ShouldMatchers {
     counter2.avgDuration = 0.0
 
     val output = counter2.subtract(counter1)
-    println(output)
     assert(output.count == 99)
     assert(output.minDuration == 9)
     assert(output.maxDuration == 10000.0)
