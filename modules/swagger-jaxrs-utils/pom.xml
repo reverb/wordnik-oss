@@ -3,14 +3,14 @@
     <parent>
         <groupId>com.wordnik</groupId>
         <artifactId>wordnik-oss-project</artifactId>
-        <version>1.01-SNAPSHOT</version>
+        <version>1.01</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.wordnik</groupId>
     <artifactId>swagger-jaxrs-utils</artifactId>
     <packaging>jar</packaging>
-    <version>1.01-SNAPSHOT</version>
+    <version>1.01</version>
     <name>swagger-jaxrs-utils</name>
     <url>https://github.com/wordnik/wordnik-os</url>
     <build>
