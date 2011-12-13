@@ -44,16 +44,11 @@ object Profile {
 
 @XmlRootElement
 class ProfileCounter(@BeanProperty var key: String) {
-  @BeanProperty
-  var count = 0L
-  @BeanProperty
-  var totalDuration = 0L
-  @BeanProperty
-  var minDuration = Long.MaxValue
-  @BeanProperty
-  var maxDuration = 0.0
-  @BeanProperty
-  var avgDuration = 0.0
+  @BeanProperty var count = 0L
+  @BeanProperty var totalDuration = 0L
+  @BeanProperty var minDuration = Long.MaxValue
+  @BeanProperty var maxDuration = 0.0
+  @BeanProperty var avgDuration = 0.0
 
   def this() = this(null)
   def incrementHits(duration: Long) = {
@@ -64,6 +59,22 @@ class ProfileCounter(@BeanProperty var key: String) {
       if (duration > maxDuration) maxDuration = duration
       avgDuration = totalDuration.toDouble / count.toDouble
     }
+  }
+
+  def subtract(what: ProfileCounter): ProfileCounter = {
+    val sub = new ProfileCounter(key)
+    sub.count = count - what.count
+    sub.totalDuration = totalDuration - what.totalDuration
+    sub.minDuration = {
+      if (minDuration <= what.minDuration) minDuration
+      else what.minDuration
+    }
+    sub.maxDuration = {
+      if (maxDuration >= what.maxDuration) maxDuration
+      else what.maxDuration
+    }
+    sub.avgDuration = sub.totalDuration / sub.count
+    sub
   }
 
   override def toString = {

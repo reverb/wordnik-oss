@@ -1,6 +1,6 @@
 package com.wordnik.test.util.perf
 
-import com.wordnik.util.perf.Profile
+import com.wordnik.util.perf._
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -52,8 +52,31 @@ class ProfileTest extends FlatSpec with ShouldMatchers {
     counters = Profile.getCounters(Some("testing-2"))
     assert(counters.size == 1)
     assert(counters(0).totalDuration >= 50 && counters(0).totalDuration <= 60)
-    
+
     counters = Profile.getCounters(None)
     assert(counters.size == 2)
+  }
+
+  it should "subtract two counters" in {
+    val counter1 = new ProfileCounter("test1")
+    counter1.count = 1
+    counter1.totalDuration = 100
+    counter1.minDuration = 10
+    counter1.maxDuration = 10000.0
+    counter1.avgDuration = 0.0
+
+    val counter2 = new ProfileCounter("test1")
+    counter2.count = 100
+
+    counter2.totalDuration = 2000
+    counter2.minDuration = 9
+    counter2.maxDuration = 100.0
+    counter2.avgDuration = 0.0
+
+    val output = counter2.subtract(counter1)
+    println(output)
+    assert(output.count == 99)
+    assert(output.minDuration == 9)
+    assert(output.maxDuration == 10000.0)
   }
 }
