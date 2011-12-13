@@ -3,14 +3,14 @@
     <parent>
         <groupId>com.wordnik</groupId>
         <artifactId>wordnik-oss-project</artifactId>
-        <version>1.01</version>
+        <version>1.02-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.wordnik</groupId>
     <artifactId>common-utils</artifactId>
     <packaging>jar</packaging>
-    <version>1.01</version>
+    <version>1.02-SNAPSHOT</version>
     <name>common-utils</name>
     <url>https://github.com/wordnik/wordnik-oss</url>
     <build>
