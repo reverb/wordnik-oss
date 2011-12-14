@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>com.wordnik</groupId>
 		<artifactId>wordnik-oss-project</artifactId>
-		<version>1.00-SNAPSHOT</version>
+		<version>1.00</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.wordnik</groupId>
