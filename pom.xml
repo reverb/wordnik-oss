@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<parent>
 		<groupId>org.sonatype.oss</groupId>
@@ -326,7 +327,10 @@
 		</profile>
 	</profiles>
 	<modules>
-		<module>modules</module>
+		<module>modules/common-utils</module>
+		<module>modules/mongo-admin-utils</module>
+		<module>modules/mongo-utils</module>
+		<module>modules/swagger-jaxrs-utils</module>
 	</modules>
 	<reporting>
 		<outputDirectory>target/site</outputDirectory>
@@ -390,26 +394,7 @@
 			<url>http://scala-tools.org/repo-releases</url>
 		</pluginRepository>
 	</pluginRepositories>
-	<repositories>
-		<repository>
-			<id>oss.sonatype.org</id>
-			<url>http://oss.sonatype.org/content/repositories/releases</url>
-		</repository>
-		<repository>
-			<id>oss.sonatype.org-snapshot</id>
-			<url>http://oss.sonatype.org/content/repositories/snapshots</url>
-		</repository>
-		<repository>
-			<id>scala-tools.org</id>
-			<name>Scala-Tools Maven2 Repository</name>
-			<url>http://scala-tools.org/repo-releases</url>
-		</repository>
-		<repository>
-			<id>codehaus</id>
-			<name>repository.codehaus.org</name>
-			<url>http://repository.codehaus.org</url>
-		</repository>
-	</repositories>
+	<repositories></repositories>
 	<dependencies>
 		<dependency>
 			<groupId>org.slf4j</groupId>
