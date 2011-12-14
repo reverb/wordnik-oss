@@ -47,7 +47,7 @@ class ProfileCounter(@BeanProperty var key: String) {
   @BeanProperty var count = 0L
   @BeanProperty var totalDuration = 0L
   @BeanProperty var minDuration = Long.MaxValue
-  @BeanProperty var maxDuration = 0.0
+  @BeanProperty var maxDuration = 0L
   @BeanProperty var avgDuration = 0.0
 
   def this() = this(null)
