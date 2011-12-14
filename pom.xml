@@ -164,7 +164,7 @@
 				<executions>
 					<execution>
 						<id>sign-artifacts</id>
-						<phase>deploy</phase>
+						<phase>release</phase>
 						<goals>
 							<goal>sign</goal>
 						</goals>
