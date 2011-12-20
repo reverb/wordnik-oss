@@ -24,28 +24,20 @@
 				<directory>src/test/resources</directory>
 			</testResource>
 		</testResources>
-		<plugins><!-- 
+		<plugins>
 			<plugin>
-				<groupId>org.apache.felix</groupId>
-				<artifactId>maven-bundle-plugin</artifactId>
-				<version>${felix-version}</version>
-				<extensions>true</extensions>
-				<configuration>
-					<instructions>
-						<Import-Package>*</Import-Package>
-					</instructions>
-				</configuration>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
 				<executions>
 					<execution>
-						<id>osgi-bundle</id>
-						<phase>package</phase>
+						<id>sign-artifacts</id>
+						<phase>install</phase>
 						<goals>
-							<goal>bundle</goal>
+							<goal>sign</goal>
 						</goals>
 					</execution>
 				</executions>
 			</plugin>
-			 -->
 		</plugins>
 	</build>
 </project>
