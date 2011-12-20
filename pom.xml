@@ -258,9 +258,7 @@
 								</goals>
 							</execution>
 						</executions>
-						<configuration>
-							<scalaVersion>${scala.version}</scalaVersion>
-						</configuration>
+						<configuration></configuration>
 					</plugin>
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
