@@ -9,7 +9,7 @@
 	<groupId>com.wordnik</groupId>
 	<artifactId>mongo-utils</artifactId>
 	<packaging>jar</packaging>
-	<version>1.00</version>
+	<version>1.00-SNAPSHOT</version>
 	<name>mongo-utils</name>
 	<url>https://github.com/wordnik/wordnik-oss</url>
 	<build>

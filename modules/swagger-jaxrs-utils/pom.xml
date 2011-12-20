@@ -9,7 +9,7 @@
     <groupId>com.wordnik</groupId>
     <artifactId>swagger-jaxrs-utils</artifactId>
     <packaging>jar</packaging>
-    <version>1.00</version>
+    <version>1.00-SNAPSHOT</version>
     <name>swagger-jaxrs-utils</name>
     <url>https://github.com/wordnik/wordnik-os</url>
     <build>
