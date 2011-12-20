@@ -24,8 +24,9 @@
 				<directory>src/test/resources</directory>
 			</testResource>
 		</testResources>
+		<plugins>
+		</plugins>
 	</build>
-	<profiles />
 	<dependencies>
 		<dependency>
 			<groupId>com.wordnik</groupId>
