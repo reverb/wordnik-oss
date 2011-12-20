@@ -9,7 +9,7 @@
 	<groupId>com.wordnik</groupId>
 	<artifactId>common-utils</artifactId>
 	<packaging>jar</packaging>
-	<version>1.01-SNAPSHOT</version>
+	<version>1.00</version>
 	<name>common-utils</name>
 	<url>https://github.com/wordnik/wordnik-oss</url>
 	<build>
