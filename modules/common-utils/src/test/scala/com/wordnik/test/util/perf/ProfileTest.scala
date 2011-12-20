@@ -58,6 +58,7 @@ class ProfileTest extends FlatSpec with ShouldMatchers {
   }
 
   it should "subtract two counters" in {
+    Profile.reset
     val counter1 = new ProfileCounter("test1")
     counter1.count = 1
     counter1.totalDuration = 100
@@ -77,5 +78,24 @@ class ProfileTest extends FlatSpec with ShouldMatchers {
     assert(output.count == 99)
     assert(output.minDuration == 9)
     assert(output.maxDuration == 10000)
+  }
+
+  it should "subtract and get proper rate" in {
+    Profile.reset
+    val counter1 = new ProfileCounter("test1")
+    counter1.count = 1
+    counter1.totalDuration = 1000
+    counter1.minDuration = 10
+    counter1.maxDuration = 10000
+    counter1.avgDuration = 0.0
+    assert(counter1.getAvgRate == 1.0)
+
+    counter1.totalDuration = 100
+    println(counter1.getAvgRate)
+    assert(counter1.getAvgRate == 10.0)
+
+    counter1.count = 100
+    counter1.totalDuration = 1000
+    assert(counter1.getAvgRate == 100.0)
   }
 }

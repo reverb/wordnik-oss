@@ -44,11 +44,25 @@ object Profile {
 
 @XmlRootElement
 class ProfileCounter(@BeanProperty var key: String) {
-  @BeanProperty var count = 0L
-  @BeanProperty var totalDuration = 0L
-  @BeanProperty var minDuration = Long.MaxValue
-  @BeanProperty var maxDuration = 0L
-  @BeanProperty var avgDuration = 0.0
+  @BeanProperty
+  var count = 0L
+  @BeanProperty
+  var totalDuration = 0L
+  @BeanProperty
+  var minDuration = Long.MaxValue
+  @BeanProperty
+  var maxDuration = 0L
+  @BeanProperty
+  var avgDuration = 0.0
+
+  @XmlElement
+  def getAvgRate: Double = {
+    totalDuration match {
+      case 0 => 0
+      case _ => (count * 1000).toDouble / (totalDuration.toDouble)
+    }
+  }
+  def setAvgRate(d: Double) = {}
 
   def this() = this(null)
   def incrementHits(duration: Long) = {
@@ -73,7 +87,8 @@ class ProfileCounter(@BeanProperty var key: String) {
       if (maxDuration >= what.maxDuration) maxDuration
       else what.maxDuration
     }
-    sub.avgDuration = sub.totalDuration / sub.count
+    if (sub.count > 0) sub.avgDuration = sub.totalDuration / sub.count
+    else sub.avgDuration = 0
     sub
   }
 
@@ -82,6 +97,7 @@ class ProfileCounter(@BeanProperty var key: String) {
     sb.append("{\"key\" : \"").append(key).append("\"")
       .append(", \"count\" : ").append(count)
       .append(", \"totalDuration\" : ").append(totalDuration)
+      .append(", \"avgRate\" : ").append(getAvgRate)
       .append(", \"minDuration\" : ").append(minDuration)
       .append(", \"avgDuration\" : ").append(avgDuration)
       .append(", \"maxDuration\" : ").append(maxDuration)
