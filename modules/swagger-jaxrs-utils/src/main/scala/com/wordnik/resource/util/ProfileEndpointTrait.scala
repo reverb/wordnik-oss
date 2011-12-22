@@ -10,7 +10,7 @@ import javax.ws.rs.core.Response
 import collection.mutable.ListBuffer
 import scala.collection.JavaConversions._
 
-trait ProfileEndpointTrait extends Profiler {
+trait ProfileEndpointTrait {
   @GET
   @ApiOperation(value = "Gets current profile info", responseClass = "com.wordnik.util.ProfileCounter")
   @Path("/profile")
