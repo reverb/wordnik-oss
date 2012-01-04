@@ -29,7 +29,6 @@
         </plugins>
     </build>
     <dependencies>
-
 		<dependency>
 			<groupId>com.wordnik</groupId>
 			<artifactId>swagger-core</artifactId>
