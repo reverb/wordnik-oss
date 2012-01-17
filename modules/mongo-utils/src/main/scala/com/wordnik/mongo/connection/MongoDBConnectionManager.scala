@@ -95,7 +95,7 @@ object MongoDBConnectionManager {
 
       LOGGER.finest("getting connection to " + host + ":" + port + "/" + schema + " with username: " + username + ", password: " + password)
 
-      val schemaId = host + ":" + port + ":" + schema
+      val schemaId = (host + ":" + port + ":" + schema).toLowerCase
       val db = mongos.contains(schemaId) match {
         case true => {
           LOGGER.finest("getting " + schemaId + " from map")
@@ -118,8 +118,9 @@ object MongoDBConnectionManager {
             mongo = new Mongo(List(sa))
             db = mongo.getDB(schema)
           }
-          mongos += schema -> new Member(replicationType, mongo)
-          addServer(schemaName, schema, db: DB, username, password, replicationType)
+          mongos += schemaId -> new Member(replicationType, mongo)
+          LOGGER.finest("schemaName: " + schemaName + ", schemaId: " + schemaId)
+          addServer(schemaId, schema, db: DB, username, password, replicationType)
           db
         }
       }
