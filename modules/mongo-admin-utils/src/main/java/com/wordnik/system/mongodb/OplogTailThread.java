@@ -183,7 +183,6 @@ public class OplogTailThread extends Thread {
     		return false;
     	}
     	if(inclusions.contains(ns) || inclusions.contains("*")){
-    		System.out.println("including " + ns);
     		return true;
     	}
     	//	check database-level inclusion

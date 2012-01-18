@@ -104,6 +104,7 @@ public class ReplayUtil extends MongoUtil {
 	}
 
 	protected void run(){
+		long startTime = System.currentTimeMillis();
 		//	decide what collections to process
 		selectCollections();
 
@@ -171,7 +172,7 @@ public class ReplayUtil extends MongoUtil {
 
 							long durationSinceLastOutput = System.currentTimeMillis() - lastOutput;
 							if(durationSinceLastOutput > REPORT_INTERVAL){
-								report(util.getInsertCount(), util.getUpdateCount(), util.getDeleteCount(), operationsRead, operationsSkipped, durationSinceLastOutput);
+								report(util.getInsertCount(), util.getUpdateCount(), util.getDeleteCount(), operationsRead, operationsSkipped, System.currentTimeMillis() - startTime);
 								lastOutput = System.currentTimeMillis();
 							}
 						}
