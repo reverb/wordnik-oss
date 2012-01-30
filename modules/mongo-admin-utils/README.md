@@ -5,6 +5,8 @@ This project contains a number of tools for administering a MongoDB Deployment
 
 ### To run
 <pre>
+mvn package
+
 ./bin/run.sh <tool-class> <options>
 </pre>
 
