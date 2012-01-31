@@ -23,21 +23,6 @@
                 <directory>src/test/resources</directory>
             </testResource>
         </testResources>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>pre-site</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
     </build>
     <dependencies>
 		<dependency>
@@ -78,9 +63,4 @@
             <scope>compile</scope>
 		</dependency>
     </dependencies>
-    <properties>
-        <swagger-core-version>1.1-SNAPSHOT</swagger-core-version>
-        <servlet-api-version>2.5</servlet-api-version>
-        <jackson-version>1.7.7</jackson-version>
-    </properties>
 </project>
