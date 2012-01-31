@@ -28,13 +28,19 @@ This keeps track of count, min, max, avg, total durations to execute the block o
 perf data as follows:
 
 <pre>
-Profile.getCounters("delete user")
+scala> Profile.getCounters(Some("delete user"))
+res3: List[com.wordnik.util.perf.ProfileCounter] = List({"key" : "delete user", "count" : 5, "totalDuration" : 17, "avgRate" : 294.11764705882354, "minDuration" : 1, "avgDuration" : 3.4, "maxDuration" : 9})
 </pre>
 
 Or use a screen printer to write them to stdout:
 
 <pre>
-ProfileScreenPrinter.dump
+scala> ProfileScreenPrinter.dump
+
+[Recorded profile statistics]
+count       |avg_time    |total_time  |min_time    |max_time    |call name  
+---------------------------------------------------------------------------------------
+5           |3.4         |17          |1           |9           | delete user
 </pre>
 
 You can also set a trigger to fire on closure of a Profile operation.  This is handy as a trigger for
