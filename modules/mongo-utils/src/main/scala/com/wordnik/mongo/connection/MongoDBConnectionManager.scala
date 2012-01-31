@@ -1,9 +1,11 @@
 package com.wordnik.mongo.connection
 
+import com.mongodb._
+
 import java.net.UnknownHostException
 import java.util.StringTokenizer
-import com.mongodb._
 import java.util.logging.Logger
+
 import scala.collection.JavaConversions._
 import scala.collection.mutable._
 
@@ -71,6 +73,19 @@ object MongoDBConnectionManager {
     }
   }
 
+  def getOplog(friendlyName: String, host: String, username: String, password: String): Option[DBCollection] = {
+    val db = getConnection(friendlyName, host, "local", null, null, SchemaType.READ_WRITE)
+    val servers = pool.get(friendlyName)
+    var coll: Option[DBCollection] = None
+    servers.get.foreach(server => {
+      if (server.replicationType == Member.RS)
+        coll = Some(server.db.getCollection("oplog.rs"))
+      else if (server.replicationType == Member.M)
+        coll = Some(server.db.getCollection("oplog.$main"))
+    })
+    coll
+  }
+
   @throws(classOf[PersistenceException])
   def getConnection(schemaName: String, h: String, schema: String, u: String, pw: String, schemaType: Int): DB = {
     if (h.indexOf(":") > 0) getConnection(schemaName, h.split(":")(0), h.split(":")(1).toInt, schema, u, pw, schemaType)
@@ -78,7 +93,7 @@ object MongoDBConnectionManager {
   }
 
   @throws(classOf[PersistenceException])
-  def getConnection(schemaName: String, h: String, p: Int, schema: String, u: String, pw: String, schemaType: Int): DB = {
+  def getConnection(friendlyName: String, h: String, p: Int, schema: String, u: String, pw: String, schemaType: Int): DB = {
     var host: String = h
     var port = p
     val username = {
@@ -100,6 +115,7 @@ object MongoDBConnectionManager {
         case true => {
           LOGGER.finest("getting " + schemaId + " from map")
           val db = mongos(schemaId).mongo.getDB(schema)
+          LOGGER.finest("all known servers: " + db.getMongo.getServerAddressList)
           username match {
             case Some(username) => db.authenticate(username, password.toCharArray)
             case _ =>
@@ -119,8 +135,8 @@ object MongoDBConnectionManager {
             db = mongo.getDB(schema)
           }
           mongos += schemaId -> new Member(replicationType, mongo)
-          LOGGER.finest("schemaName: " + schemaName + ", schemaId: " + schemaId)
-          addServer(schemaId, schema, db: DB, username, password, replicationType)
+          LOGGER.finest("schemaName: " + friendlyName + ", schemaId: " + schemaId)
+          addServer(friendlyName, schema, db: DB, username, password, replicationType)
           db
         }
       }
@@ -148,6 +164,7 @@ object MongoDBConnectionManager {
           stat = db.command("isMaster").toString
           if (stat.indexOf("setName") > 0) {
             //  is a replica set
+            LOGGER.finest("detected replica set")
             Member.RS
           } else {
             if (stat.indexOf("\"ismaster\" : true") > 0) Member.M
@@ -166,22 +183,26 @@ object MongoDBConnectionManager {
     }
   }
 
-  def addServer(schemaName: String, schema: String, db: DB, username: Option[String], password: String, replicationType: Int) = {
-    val snl = schemaName.toLowerCase
+  def addServer(friendlyName: String, schema: String, db: DB, username: Option[String], password: String, replicationType: Int) = {
+    val snl = friendlyName.toLowerCase
     if (!pool.contains(snl)) {
       val serverList = new ListBuffer[DBServer]
       pool += snl -> List[DBServer]()
     }
     val serverList = new ListBuffer[DBServer]
-    pool(snl).foreach(server => { serverList += server })
+    pool(snl).foreach(server => serverList += server)
 
     serverList += new DBServer(db, username, password, replicationType)
     pool += snl -> serverList.toList
-    LOGGER.finest("adding to pool, key: " + snl + ", server: " + db)
+    LOGGER.finest("adding to pool, key: " + snl + ", db: " + db)
   }
 }
 
-class DBServer(val db: DB, val username: Option[String], val password: String, val replicationType: Int)
+class DBServer(val db: DB, val username: Option[String], val password: String, val replicationType: Int) {
+  override def toString: String = {
+    new StringBuilder().append("db: ").append(db).append(", replType: ").append(replicationType).toString
+  }
+}
 
 object Member {
   val RS = 1

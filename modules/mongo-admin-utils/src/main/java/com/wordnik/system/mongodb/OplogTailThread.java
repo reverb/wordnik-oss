@@ -27,13 +27,11 @@ public class OplogTailThread extends Thread {
 	protected List<String> inclusions;
 	protected List<String> exclusions;
 	protected OplogRecordProcessor processor;
-	protected DB db;
+	protected DBCollection oplog;
 	protected static String OPLOG_LAST_FILENAME = "last_timestamp.txt";
 
-	protected String collectionName = "oplog.$main";
-
-	public OplogTailThread(OplogRecordProcessor processor, DB db){
-		this.db = db;
+	public OplogTailThread(OplogRecordProcessor processor, DBCollection oplog){
+		this.oplog = oplog;
 		this.processor = processor;
 		setName("OplogTailThread");
 	}
@@ -112,8 +110,6 @@ public class OplogTailThread extends Thread {
 	            		System.out.println("exiting thread");
 	            		return;
 	            	}
-    				DBCollection oplog = db.getCollection(collectionName);
-
     	            DBCursor cursor = null;
     	            if(lastTimestamp != null){
     	            	cursor = oplog.find( new BasicDBObject( "ts" , new BasicDBObject( "$gt" , lastTimestamp ) ) );
@@ -147,7 +143,22 @@ public class OplogTailThread extends Thread {
 						}
 		            }
 	            }
+	            catch(com.mongodb.MongoException.CursorNotFound ex){
+	            	writeLastTimestamp(lastTimestamp);
+	            	System.out.println("Cursor not found, waiting");
+	            	Thread.sleep(2000);
+	            }
 	            catch(com.mongodb.MongoInternalException ex){
+	            	System.out.println("Cursor not found, waiting");
+	            	writeLastTimestamp(lastTimestamp);
+	            	ex.printStackTrace();
+	            }
+	            catch(com.mongodb.MongoException ex){
+	            	writeLastTimestamp(lastTimestamp);
+	            	System.out.println("Internal exception, waiting");
+	            	Thread.sleep(2000);
+	            }
+	            catch(Exception ex){
 	            	killMe = true;
 	            	writeLastTimestamp(lastTimestamp);
 	            	ex.printStackTrace();

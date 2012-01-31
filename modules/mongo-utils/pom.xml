@@ -1,19 +1,18 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<parent>
 		<groupId>com.wordnik</groupId>
 		<artifactId>wordnik-oss-project</artifactId>
 		<version>1.01-SNAPSHOT</version>
-		<relativePath>../../pom.xml</relativePath>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.wordnik</groupId>
-	<artifactId>mongo-utils</artifactId>
+	<artifactId>mongo-utils_2.8.1</artifactId>
 	<packaging>jar</packaging>
 	<version>1.01-SNAPSHOT</version>
 	<name>mongo-utils</name>
-	<url>https://github.com/wordnik/wordnik-oss</url>
 	<build>
+		<sourceDirectory>src/main/java</sourceDirectory>
 		<defaultGoal>install</defaultGoal>
 		<resources>
 			<resource>
@@ -26,6 +25,19 @@
 			</testResource>
 		</testResources>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>pre-site</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 	<dependencies>
@@ -35,9 +47,33 @@
 			<version>${pom.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.scalatest</groupId>
+			<artifactId>scalatest_2.8.1</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+		</dependency>		
+		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongo-java-driver</artifactId>
-			<version>${mongodb-version}</version>
+			<version>${mongo-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-jaxrs</artifactId>
+			<version>${jackson-version}</version>
+			<scope>compile</scope>
 		</dependency>
 	</dependencies>
+	<properties>
+		<jackson-version>1.7.7</jackson-version>
+		<mongo-version>2.6.1</mongo-version>
+	</properties>
 </project>
