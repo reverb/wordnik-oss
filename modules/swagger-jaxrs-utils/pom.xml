@@ -2,13 +2,13 @@
     <parent>
         <groupId>com.wordnik</groupId>
         <artifactId>wordnik-oss-project</artifactId>
-        <version>1.02-SNAPSHOT</version>
+        <version>1.01</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.wordnik</groupId>
     <artifactId>swagger-jaxrs-utils_2.8.1</artifactId>
     <packaging>jar</packaging>
-    <version>1.02-SNAPSHOT</version>
+    <version>1.01</version>
     <name>swagger-jaxrs-utils</name>
     <build>
 		<sourceDirectory>src/main/java</sourceDirectory>
