@@ -7,7 +7,7 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.wordnik</groupId>
-	<artifactId>mongo-admin-utils_2.8.1</artifactId>
+	<artifactId>mongo-admin-utils_2.9-SNAPSHOT</artifactId>
 	<packaging>jar</packaging>
 	<version>1.02-SNAPSHOT</version>
 	<name>mongo-admin-utils</name>

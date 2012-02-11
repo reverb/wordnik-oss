@@ -392,7 +392,7 @@
 			</dependency>
 			<dependency>
 				<groupId>org.scalatest</groupId>
-				<artifactId>scalatest_2.8.1</artifactId>
+				<artifactId>scalatest_2.9.1</artifactId>
 				<version>${scala-test-version}</version>
 				<scope>test</scope>
 			</dependency>
@@ -421,7 +421,7 @@
 		<swagger-core-version>1.01</swagger-core-version>
 		<felix-version>2.3.4</felix-version>
 		<servlet-api-version>2.5</servlet-api-version>
-		<scala-version>2.8.1</scala-version>
+		<scala-version>2.9.2-SNAPSHOT</scala-version>
 		<jersey-version>1.7</jersey-version>
 		<jackson-version>1.8.3</jackson-version>
 		<junit-version>4.8.1</junit-version>
@@ -429,7 +429,7 @@
 		<commons-lang-version>2.4</commons-lang-version>
 		<slf4j-version>1.6.3</slf4j-version>
 		<mongodb-version>2.6.2</mongodb-version>
-		<scala-test-version>1.5.RC3</scala-test-version>
+		<scala-test-version>1.6.1</scala-test-version>
 		<jetty.maven.version>7.6.0.RC4</jetty.maven.version>
 		<servlet-api-version>2.5</servlet-api-version>
 	</properties>
