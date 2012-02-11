@@ -28,7 +28,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.wordnik</groupId>
-			<artifactId>common-utils_2.8.1</artifactId>
+			<artifactId>common-utils_2.9-SNAPSHOT</artifactId>
 			<version>${pom.version}</version>
 		</dependency>
 		<dependency>

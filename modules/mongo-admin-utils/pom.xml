@@ -28,7 +28,7 @@
 	<dependencies>
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_2.8.1</artifactId>
+            <artifactId>scalatest_2.9.1</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -38,12 +38,12 @@
         </dependency>
 		<dependency>
 			<groupId>com.wordnik</groupId>
-			<artifactId>mongo-utils_2.8.1</artifactId>
+			<artifactId>mongo-utils_2.9-SNAPSHOT</artifactId>
 			<version>${pom.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.wordnik</groupId>
-			<artifactId>common-utils_2.8.1</artifactId>
+			<artifactId>common-utils_2.9-SNAPSHOT</artifactId>
 			<version>${pom.version}</version>
 		</dependency>
 	</dependencies>
