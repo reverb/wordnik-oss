@@ -418,7 +418,7 @@
 	</pluginRepositories>
 	<repositories />
 	<properties>
-		<swagger-core-version>1.01</swagger-core-version>
+		<swagger-core-version>1.02-SNAPSHOT</swagger-core-version>
 		<felix-version>2.3.4</felix-version>
 		<servlet-api-version>2.5</servlet-api-version>
 		<scala-version>2.9.2-SNAPSHOT</scala-version>
