@@ -116,10 +116,6 @@ object MongoDBConnectionManager {
           LOGGER.finest("getting " + schemaId + " from map")
           val db = mongos(schemaId).mongo.getDB(schema)
           LOGGER.finest("all known servers: " + db.getMongo.getServerAddressList)
-          username match {
-            case Some(username) => db.authenticate(username, password.toCharArray)
-            case _ =>
-          }
           db
         }
         case _ => {
