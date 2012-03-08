@@ -190,7 +190,7 @@ object MongoDBConnectionManager {
     pool(snl).foreach(server => serverList += server)
 
     val dbServer = new DBServer(db, username, password, replicationType)
-    if(!serverList.contains(dbServer)) serverList += new DBServer(db, username, password, replicationType)
+    if(!serverList.contains(dbServer)) serverList += dbServer
     pool += snl -> serverList.toList
     LOGGER.finest("adding to pool, key: " + snl + ", db: " + db)
   }
