@@ -115,7 +115,9 @@ object MongoDBConnectionManager {
         case true => {
           LOGGER.finest("getting " + schemaId + " from map")
           val db = mongos(schemaId).mongo.getDB(schema)
+          val replicationType = detectReplicationType(db, username, password)
           LOGGER.finest("all known servers: " + db.getMongo.getServerAddressList)
+          addServer(friendlyName, schema, db: DB, username, password, replicationType)
           db
         }
         case _ => {
@@ -182,21 +184,30 @@ object MongoDBConnectionManager {
   def addServer(friendlyName: String, schema: String, db: DB, username: Option[String], password: String, replicationType: Int) = {
     val snl = friendlyName.toLowerCase
     if (!pool.contains(snl)) {
-      val serverList = new ListBuffer[DBServer]
       pool += snl -> List[DBServer]()
     }
     val serverList = new ListBuffer[DBServer]
     pool(snl).foreach(server => serverList += server)
 
-    serverList += new DBServer(db, username, password, replicationType)
+    val dbServer = new DBServer(db, username, password, replicationType)
+    if(!serverList.contains(dbServer)) serverList += new DBServer(db, username, password, replicationType)
     pool += snl -> serverList.toList
     LOGGER.finest("adding to pool, key: " + snl + ", db: " + db)
   }
 }
 
 class DBServer(val db: DB, val username: Option[String], val password: String, val replicationType: Int) {
+
   override def toString: String = {
     new StringBuilder().append("db: ").append(db).append(", replType: ").append(replicationType).toString
+  }
+
+  override def equals(other:Any):Boolean = {
+    other match {
+      case that:DBServer => (this.db.getMongo.getAddress == that.db.getMongo.getAddress &&
+                                this.replicationType == that.replicationType)
+      case _ => false
+    }
   }
 }
 
