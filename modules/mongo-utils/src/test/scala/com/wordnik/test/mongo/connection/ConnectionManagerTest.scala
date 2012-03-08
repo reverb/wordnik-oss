@@ -22,6 +22,16 @@ class ConnectionManagerTest extends FlatSpec with ShouldMatchers {
     assert(db != null)
   }
 
+  it should "register same connection for different friendly names" in {
+    val db = MongoDBConnectionManager.getConnection(
+      "test-ms", "localhost", 27017, "test", null, null, SchemaType.READ_WRITE)
+    assert(db != null)
+    MongoDBConnectionManager.getConnection(
+      "test-ms2", "localhost", 27017, "test", null, null, SchemaType.READ_WRITE)
+    val db2 = MongoDBConnectionManager.getConnection("test-ms2", SchemaType.READ_WRITE)
+    assert(db2 != null)
+  }
+
   it should "get a master connection by friendly name" in {
     // get it from the pool
     val check = MongoDBConnectionManager.getConnection("test-ms", SchemaType.READ_WRITE)
