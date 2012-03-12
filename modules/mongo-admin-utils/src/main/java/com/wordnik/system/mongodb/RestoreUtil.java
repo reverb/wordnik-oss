@@ -84,7 +84,7 @@ public class RestoreUtil extends MongoUtil {
 			if(files != null){
 				List<File> filesToProcess = new ArrayList<File>();
 				for(File file : files){
-					if(file.getName().startsWith(info.getName()) && file.getName().indexOf(".bson") > 0){
+					if(file.getName().startsWith(info.getName() + ".") && file.getName().indexOf(".bson") > 0){
 						filesToProcess.add(file);
 					}
 				}
@@ -184,19 +184,6 @@ public class RestoreUtil extends MongoUtil {
 					collectionsToAdd.addAll(collectionsFromFiles);
 				}
 			}
-			if(exclusionsOnly){
-				for(String collectionName : collectionsFromFiles){
-					if(!collectionsToSkip.contains(collectionName)){
-						collectionsToAdd.add(collectionName);
-					}
-				}
-			}
-			else{
-				if(collectionsToAdd.size() == 0){
-					//	add everything
-					collectionsToAdd.addAll(collectionsFromFiles);
-				}
-			}
 			for(String collection : collectionsToAdd){
 				if(!"*".equals(collection))
 					collections.add(new CollectionInfo(collection, 0));
@@ -215,18 +202,19 @@ public class RestoreUtil extends MongoUtil {
 			if(file.getName().contains(".bson")){
 				int pos = file.getName().indexOf(".bson");
 				String collectionName = file.getName().substring(0, pos);
+
 				if(collectionName.indexOf('.') > 0){
-					StringTokenizer tk = new StringTokenizer(collectionName, ".");
-					if(tk.countTokens() > 1){
-						String base = null;
-						try{
-							base = tk.nextToken();
-							Integer.parseInt(tk.nextToken());
-							collectionName = base;
-						}
-						catch(NumberFormatException e){
-							//	continue
-						}
+					String[] parts = collectionName.split("\\.");
+
+					try {
+						Integer.parseInt(parts[parts.length - 1]);
+
+						collectionName = parts[0];
+
+						for (int x = 1; x < parts.length - 1; x++)
+							collectionName = collectionName + "." + parts[x];
+					}
+					catch(NumberFormatException e){
 					}
 				}
 				collectionNames.add(collectionName);
