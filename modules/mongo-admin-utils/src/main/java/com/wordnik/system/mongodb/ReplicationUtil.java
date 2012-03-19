@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import com.mongodb.DB;
+import com.mongodb.*;
 
 public class ReplicationUtil extends MongoUtil {
 	protected static String DATABASE_HOST = null;
@@ -74,8 +74,8 @@ public class ReplicationUtil extends MongoUtil {
 
 		try{
 			//	create and configure a tail thread
-			DB db = MongoDBConnectionManager.getConnection("DB", DATABASE_HOST, "local", DATABASE_USER_NAME, DATABASE_PASSWORD, SchemaType.READ_WRITE());
-			OplogTailThread thd = new OplogTailThread(util, db);
+			DBCollection coll = MongoDBConnectionManager.getOplog("oplog", DATABASE_HOST, DATABASE_USER_NAME, DATABASE_PASSWORD).get();
+			OplogTailThread thd = new OplogTailThread(util, coll);
 			List<String> inclusions = new ArrayList<String>();
 			List<String> exclusions = new ArrayList<String>();
 			selectCollections(COLLECTIONS_STRING, inclusions, exclusions);
