@@ -6,7 +6,7 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.wordnik</groupId>
-	<artifactId>common-utils_2.9-SNAPSHOT</artifactId>
+	<artifactId>common-utils_2.9.1-1</artifactId>
 	<packaging>jar</packaging>
 	<version>1.02-SNAPSHOT</version>
 	<name>common-utils</name>

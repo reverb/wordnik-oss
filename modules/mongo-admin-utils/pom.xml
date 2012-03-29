@@ -7,7 +7,7 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.wordnik</groupId>
-	<artifactId>mongo-admin-utils_2.9-SNAPSHOT</artifactId>
+	<artifactId>mongo-admin-utils_2.9.1-1</artifactId>
 	<packaging>jar</packaging>
 	<version>1.02-SNAPSHOT</version>
 	<name>mongo-admin-utils</name>
@@ -38,12 +38,12 @@
         </dependency>
 		<dependency>
 			<groupId>com.wordnik</groupId>
-			<artifactId>mongo-utils_2.9-SNAPSHOT</artifactId>
+			<artifactId>mongo-utils_2.9.1-1</artifactId>
 			<version>${pom.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.wordnik</groupId>
-			<artifactId>common-utils_2.9-SNAPSHOT</artifactId>
+			<artifactId>common-utils_2.9.1-1</artifactId>
 			<version>${pom.version}</version>
 		</dependency>
 	</dependencies>
