@@ -95,22 +95,27 @@ public class OplogReplayWriter implements OplogRecordProcessor {
 			DB db = MongoDBConnectionManager.getConnection("REPLAY", destinationDatabaseHost, targetDatabase, destinationDatabaseUsername, destinationDatabasePassword, SchemaType.READ_WRITE());
 			DBCollection coll = db.getCollection(targetCollection);
 	
-			if("i".equals(operationType)){
-				insertCount++;
-				coll.insert(operation);
+			try{
+				if("i".equals(operationType)){
+					insertCount++;
+					coll.insert(operation);
+				}
+				else if("d".equals(operationType)){
+					deleteCount++;
+					coll.remove(operation);
+				}
+				else if("u".equals(operationType)){
+					updateCount++;
+					BasicDBObject o2 = new BasicDBObject((BasicBSONObject)dbo.get("o2"));
+					coll.update(o2, operation);
+				}
+				else if("c".equals(operationType)){
+					commandCount++;
+					db.command(operation);
+				}
 			}
-			else if("d".equals(operationType)){
-				deleteCount++;
-				coll.remove(operation);
-			}
-			else if("u".equals(operationType)){
-				updateCount++;
-				BasicDBObject o2 = new BasicDBObject((BasicBSONObject)dbo.get("o2"));
-				coll.update(o2, operation);
-			}
-			else if("c".equals(operationType)){
-				commandCount++;
-				db.command(operation);
+			catch (Exception e) {
+				System.out.println("failed to process record " + operation.toString());
 			}
 		}
 	}

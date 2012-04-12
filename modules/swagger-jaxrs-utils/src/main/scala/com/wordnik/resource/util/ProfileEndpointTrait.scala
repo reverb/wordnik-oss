@@ -12,7 +12,7 @@ import scala.collection.JavaConversions._
 
 trait ProfileEndpointTrait {
   @GET
-  @ApiOperation(value = "Gets current profile info", responseClass = "com.wordnik.util.ProfileCounter")
+  @ApiOperation(value = "Gets current profile info", multiValueResponse = true, responseClass = "com.wordnik.util.perf.ProfileCounter")
   @Path("/profile")
   def getProfile(
     @ApiParam(value = "Filter to sort by")@QueryParam("filter") filter: String,

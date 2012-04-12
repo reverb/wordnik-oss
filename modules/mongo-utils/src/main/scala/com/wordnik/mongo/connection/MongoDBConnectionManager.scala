@@ -74,7 +74,7 @@ object MongoDBConnectionManager {
   }
 
   def getOplog(friendlyName: String, host: String, username: String, password: String): Option[DBCollection] = {
-    val db = getConnection(friendlyName, host, "local", null, null, SchemaType.READ_WRITE)
+    val db = getConnection(friendlyName, host, "local", username, password, SchemaType.READ_WRITE)
     val servers = pool.get(friendlyName)
     var coll: Option[DBCollection] = None
     servers.get.foreach(server => {
