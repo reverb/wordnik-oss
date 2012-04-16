@@ -24,4 +24,3 @@ This will build all the OSS modules.  You can see more on each modules home page
 
 [mongo-admin-utils](/wordnik/wordnik-oss/blob/master/modules/mongo-admin-utils/README.md) Set of tools to maintain a production MongoDB deployment
 
-[swagger-jaxrs-utils](/wordnik/wordnik-oss/blob/master/modules/swagger-jaxrs-utils/README.md) Add-ons for Swagger with JAX-RS
