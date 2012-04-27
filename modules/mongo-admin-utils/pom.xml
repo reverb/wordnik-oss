@@ -40,11 +40,13 @@
 			<groupId>com.wordnik</groupId>
 			<artifactId>mongo-utils_2.9.1</artifactId>
 			<version>${pom.version}</version>
+			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.wordnik</groupId>
 			<artifactId>common-utils_2.9.1</artifactId>
 			<version>${pom.version}</version>
+			<scope>compile</scope>
 		</dependency>
 	</dependencies>
 </project>
