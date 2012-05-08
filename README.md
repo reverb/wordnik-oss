@@ -4,7 +4,7 @@
 This project contains a number of tools for common routines, mongodb usage & administration, and swagger
 
 ### To build
-Requires maven 2 or higher, Java 1.6.X.  You can also find the artifacts in [maven central](http://repo1.maven.org/maven2/com/wordnik/)
+Requires maven 3.0 or higher, Java 1.6.X.  You can also find the artifacts in [maven central](http://repo1.maven.org/maven2/com/wordnik/)
 
 First build:
 <pre>
