@@ -41,8 +41,10 @@ public class IncrementalBackupUtil extends MongoUtil {
 		try{
 			//	create a file-based writer and configure it
 			OplogFileWriter util = new OplogFileWriter();
+			OplogFileWriter.COMPRESS_OUTPUT_FILES = COMPRESS_OUTPUT_FILES;
+			OplogFileWriter.UNCOMPRESSED_FILE_SIZE_MB = UNCOMPRESSED_FILE_SIZE_MB;
 			util.setOutputDirectory(OUTPUT_DIRECTORY);
-			
+
 			//	create the thread and give it a connection + the util
 			OplogTailThread thd = new OplogTailThread(util, MongoDBConnectionManager.getOplog("oplog", DATABASE_HOST, DATABASE_USER_NAME, DATABASE_PASSWORD).get());
 
