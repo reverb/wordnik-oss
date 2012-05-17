@@ -48,7 +48,7 @@
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongo-java-driver</artifactId>
-			<version>${mongo-version}</version>
+			<version>${mongodb-version}</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -58,7 +58,4 @@
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>
-	<properties>
-		<mongo-version>2.6.1</mongo-version>
-	</properties>
 </project>
