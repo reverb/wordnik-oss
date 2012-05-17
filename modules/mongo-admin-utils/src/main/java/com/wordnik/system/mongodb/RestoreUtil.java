@@ -29,6 +29,7 @@ import java.util.StringTokenizer;
 import java.util.zip.GZIPInputStream;
 
 import org.bson.BSONDecoder;
+import com.mongodb.DefaultDBDecoder;
 import org.bson.BSONObject;
 import org.bson.BasicBSONObject;
 
@@ -116,7 +117,7 @@ public class RestoreUtil extends MongoUtil {
 						else{
 							inputStream = new BufferedInputStream(new FileInputStream(file));
 						}
-						BSONDecoder decoder = new BSONDecoder();
+						BSONDecoder decoder = new DefaultDBDecoder();
 						while(true){
 							if(inputStream.available() == 0){
 								break;

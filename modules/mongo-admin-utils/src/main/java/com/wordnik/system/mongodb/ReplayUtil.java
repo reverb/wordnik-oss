@@ -1,4 +1,4 @@
-// Copyright (C) 2010  Wordnik, Inc.
+// Copyright (C) 2012  Wordnik, Inc.
 //
 // This program is free software: you can redistribute it and/or modify it
 // under the terms of the GNU Lesser General Public License as published by
@@ -29,6 +29,7 @@ import java.util.StringTokenizer;
 import java.util.zip.GZIPInputStream;
 
 import org.bson.BSONDecoder;
+import com.mongodb.DefaultDBDecoder;
 import org.bson.BSONObject;
 import org.bson.BasicBSONObject;
 import org.bson.types.BSONTimestamp;
@@ -145,7 +146,7 @@ public class ReplayUtil extends MongoUtil {
 						else{
 							inputStream = new BufferedInputStream(new FileInputStream(file));
 						}
-						BSONDecoder decoder = new BSONDecoder();
+						BSONDecoder decoder = new DefaultDBDecoder();
 						while(true){
 							if(inputStream.available() == 0){
 								break;
