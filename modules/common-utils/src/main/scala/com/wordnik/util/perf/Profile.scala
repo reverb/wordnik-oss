@@ -19,22 +19,24 @@ object Profile {
     counterList.sortWith(_.key > _.key).toList
   }
 
-  def apply[T](name: String, f: => T, output: Boolean): T = {
+  def apply[T](name: String, f: => T, output: Boolean = false): T = {
+    doProfile(name, f, output)
+  }
+
+  def profile[T](name: String, output: Boolean = false)(f: => T): T = {
+    doProfile(name, f, output)
+  }
+
+  private def doProfile[T](name:String, f: => T, output: Boolean):T = {
     val p = Profile(name)
     try f
     finally {
       p.finish
       output match {
-        case true => println(name, p.getDuration)
-        case _ =>
+	case true => println(name, p.getDuration)
+	case _ =>
       }
     }
-  }
-
-  def apply[T](name: String, f: => T): T = {
-    val p = Profile(name)
-    try f
-    finally p.finish
   }
 
   def processTriggers(counter: ProfileCounter) = {
