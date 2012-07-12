@@ -113,6 +113,7 @@ public class OplogTailThread extends Thread {
     	            DBCursor cursor = null;
     	            if(lastTimestamp != null){
     	            	cursor = oplog.find( new BasicDBObject( "ts" , new BasicDBObject( "$gt" , lastTimestamp ) ) );
+                        cursor.addOption( Bytes.QUERYOPTION_OPLOGREPLAY );
     	            }
     	            else{
     	            	cursor = oplog.find();
