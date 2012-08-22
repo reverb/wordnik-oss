@@ -16,7 +16,14 @@ public class StopFileMonitor extends Thread {
 				if(file.exists() || tailThread.killMe){
 					System.out.println("found stop file, exiting");
 					tailThread.killMe = true;
-					file.deleteOnExit();
+                    tailThread.interrupt();
+                    if(tailThread.exitOnStopThread){
+                        file.delete();
+                        System.exit(-1);
+                    }else{
+                        file.deleteOnExit();
+                    }
+
 					return;
 				}
 			}

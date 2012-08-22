@@ -29,6 +29,7 @@ public class OplogTailThread extends Thread {
 	protected OplogRecordProcessor processor;
 	protected DBCollection oplog;
 	protected static String OPLOG_LAST_FILENAME = "last_timestamp.txt";
+    protected boolean exitOnStopThread = false;
 
 	public OplogTailThread(OplogRecordProcessor processor, DBCollection oplog){
 		this.oplog = oplog;
@@ -41,6 +42,10 @@ public class OplogTailThread extends Thread {
 			OPLOG_LAST_FILENAME = dir + File.separator + OPLOG_LAST_FILENAME;
 		}
 	}
+
+    public void setExitOnStopThread(Boolean isExit){
+        exitOnStopThread = isExit;
+    }
 
 	public void setInclusions(List<String> inclusions){
 		this.inclusions = inclusions;
@@ -112,7 +117,7 @@ public class OplogTailThread extends Thread {
 	            	}
     	            DBCursor cursor = null;
     	            if(lastTimestamp != null){
-    	            	cursor = oplog.find( new BasicDBObject( "ts" , new BasicDBObject( "$gt" , lastTimestamp ) ) );
+                        cursor = oplog.find( new BasicDBObject( "ts" , new BasicDBObject( "$gt" , lastTimestamp ) ) );
                         cursor.addOption( Bytes.QUERYOPTION_OPLOGREPLAY );
     	            }
     	            else{
@@ -125,23 +130,25 @@ public class OplogTailThread extends Thread {
 
     	            while (!killMe && cursor.hasNext() ){
 		                DBObject x = cursor.next();
-		                lastTimestamp = (BSONTimestamp)x.get("ts");
-		                if(shouldWrite(x)){
-		                	processor.processRecord((BasicDBObject)x);
-		                	count++;
-		                }
-		                else{
-		                	skips++;
-		                }
-		                if(System.currentTimeMillis() - lastWrite > 1000){
-		    				writeLastTimestamp(lastTimestamp);
-		    				lastWrite = System.currentTimeMillis();
-		                }
-		                long duration = System.currentTimeMillis() - lastOutput;
-						if(duration > reportInterval){
-							report("oplog", count, skips, System.currentTimeMillis() - startTime);
-							lastOutput = System.currentTimeMillis();
-						}
+                        if(!killMe) {
+                            lastTimestamp = (BSONTimestamp)x.get("ts");
+                            if(shouldWrite(x)){
+                                processor.processRecord((BasicDBObject)x);
+                                count++;
+                            }
+                            else{
+                                skips++;
+                            }
+                            if(System.currentTimeMillis() - lastWrite > 1000){
+                                writeLastTimestamp(lastTimestamp);
+                                lastWrite = System.currentTimeMillis();
+                            }
+                            long duration = System.currentTimeMillis() - lastOutput;
+                            if(duration > reportInterval){
+                                report("oplog", count, skips, System.currentTimeMillis() - startTime);
+                                lastOutput = System.currentTimeMillis();
+                            }
+                        }
 		            }
 	            }
 	            catch(com.mongodb.MongoException.CursorNotFound ex){
