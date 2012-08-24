@@ -18,6 +18,7 @@ public class StopFileMonitor extends Thread {
 					tailThread.killMe = true;
                     tailThread.interrupt();
                     if(tailThread.exitOnStopThread){
+                        System.out.println("Exiting the JVM becuase of exit on stop thread");
                         file.delete();
                         System.exit(-1);
                     }else{
