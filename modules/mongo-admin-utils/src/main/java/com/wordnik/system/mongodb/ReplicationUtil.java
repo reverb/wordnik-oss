@@ -76,6 +76,7 @@ public class ReplicationUtil extends MongoUtil {
 			//	create and configure a tail thread
 			DBCollection coll = MongoDBConnectionManager.getOplog("oplog", DATABASE_HOST, DATABASE_USER_NAME, DATABASE_PASSWORD).get();
 			OplogTailThread thd = new OplogTailThread(util, coll);
+            thd.setExitOnStopThread(true);
 			List<String> inclusions = new ArrayList<String>();
 			List<String> exclusions = new ArrayList<String>();
 			selectCollections(COLLECTIONS_STRING, inclusions, exclusions);

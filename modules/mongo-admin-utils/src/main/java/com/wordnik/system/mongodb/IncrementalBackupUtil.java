@@ -47,7 +47,7 @@ public class IncrementalBackupUtil extends MongoUtil {
 
 			//	create the thread and give it a connection + the util
 			OplogTailThread thd = new OplogTailThread(util, MongoDBConnectionManager.getOplog("oplog", DATABASE_HOST, DATABASE_USER_NAME, DATABASE_PASSWORD).get());
-
+            thd.setExitOnStopThread(true);
 			List<String> inclusions = new ArrayList<String>();
 			List<String> exclusions = new ArrayList<String>();
 			selectCollections(COLLECTIONS_STRING, inclusions, exclusions);
