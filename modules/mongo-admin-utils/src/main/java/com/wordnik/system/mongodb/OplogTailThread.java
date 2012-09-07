@@ -206,7 +206,6 @@ public class OplogTailThread extends Thread {
     	}
     	//	check database-level inclusion
     	if(ns.indexOf('.') > 0 && inclusions.contains(ns.substring(0, ns.indexOf('.')))){
-    		System.out.println("including* " + ns);
     		return true;
     	}
 
