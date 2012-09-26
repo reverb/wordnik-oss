@@ -10,7 +10,7 @@
   <artifactId>wordnik-oss-project_2.9.1</artifactId>
   <packaging>pom</packaging>
   <name>wordnik-oss-project</name>
-  <version>1.1.3</version>
+  <version>1.2-SNAPSHOT</version>
   <url>https://github.com/wordnik/wordnik-oss</url>
   <scm>
     <connection>scm:git:git@github.com:wordnik/wordnik-oss.git</connection>
