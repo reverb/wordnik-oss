@@ -43,6 +43,12 @@ public class OplogTailThread extends Thread {
 		}
 	}
 
+    public void setBaseDir(String dir, String fileName){
+        if(dir != null){
+            OPLOG_LAST_FILENAME = dir + File.separator + fileName;
+        }
+    }
+
     public void setExitOnStopThread(Boolean isExit){
         exitOnStopThread = isExit;
     }
