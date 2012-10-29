@@ -1,13 +1,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<parent>
 		<groupId>com.wordnik</groupId>
-		<artifactId>wordnik-oss-project_2.9.1</artifactId>
+		<artifactId>wordnik-oss-project_2.10.0-RC1</artifactId>
 		<version>1.2.0-SNAPSHOT</version>
     <relativePath>../..</relativePath>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.wordnik</groupId>
-	<artifactId>mongo-admin-utils_2.9.1</artifactId>
+	<artifactId>mongo-admin-utils_2.10.0-RC1</artifactId>
 	<packaging>jar</packaging>
 	<version>1.2.0-SNAPSHOT</version>
 	<name>mongo-admin-utils</name>
@@ -28,7 +28,7 @@
 	<dependencies>
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_2.9.1</artifactId>
+            <artifactId>scalatest_2.10.0-RC1</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -38,13 +38,13 @@
         </dependency>
 		<dependency>
 			<groupId>com.wordnik</groupId>
-			<artifactId>mongo-utils_2.9.1</artifactId>
+			<artifactId>mongo-utils_2.10.0-RC1</artifactId>
 			<version>${pom.version}</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.wordnik</groupId>
-			<artifactId>common-utils_2.9.1</artifactId>
+			<artifactId>common-utils_2.10.0-RC1</artifactId>
 			<version>${pom.version}</version>
 			<scope>compile</scope>
 		</dependency>
