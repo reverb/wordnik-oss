@@ -28,16 +28,22 @@ public class OplogTailThread extends Thread {
 	protected List<String> exclusions;
 	protected OplogRecordProcessor processor;
 	protected DBCollection oplog;
-	protected static String OPLOG_LAST_FILENAME = "last_timestamp.txt";
+	protected String OPLOG_LAST_FILENAME = "last_timestamp.txt";
     protected boolean exitOnStopThread = false;
 
 	public OplogTailThread(OplogRecordProcessor processor, DBCollection oplog){
 		this.oplog = oplog;
 		this.processor = processor;
-		setName("OplogTailThread");
+		setName("oplog");
 	}
 
-	public void setBaseDir(String dir){
+    public OplogTailThread(OplogRecordProcessor processor, DBCollection oplog, String threadName){
+        this.oplog = oplog;
+        this.processor = processor;
+        setName(threadName);
+    }
+
+    public void setBaseDir(String dir){
 		if(dir != null){
 			OPLOG_LAST_FILENAME = dir + File.separator + OPLOG_LAST_FILENAME;
 		}
@@ -151,7 +157,7 @@ public class OplogTailThread extends Thread {
                             }
                             long duration = System.currentTimeMillis() - lastOutput;
                             if(duration > reportInterval){
-                                report("oplog", count, skips, System.currentTimeMillis() - startTime);
+                                report(this.getName(), count, skips, System.currentTimeMillis() - startTime);
                                 lastOutput = System.currentTimeMillis();
                             }
                         }
