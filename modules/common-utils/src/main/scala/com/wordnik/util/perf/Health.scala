@@ -16,9 +16,9 @@ package com.wordnik.util.perf
  * limitations under the License.
  */
 
+import java.lang.management.ManagementFactory
 import javax.xml.bind.annotation.XmlRootElement
 import reflect.BeanProperty
-import sun.management.ManagementFactory
 
 /**
  * @author ayush
