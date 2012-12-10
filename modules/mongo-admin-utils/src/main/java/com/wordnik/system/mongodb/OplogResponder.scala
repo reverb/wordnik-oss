@@ -1,3 +1,15 @@
+// Copyright (C) 2010  Wordnik, Inc.
+//
+// This program is free software: you can redistribute it and/or modify it
+// under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or (at your
+// option) any later version.  This program is distributed in the hope that it
+// will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+// of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser
+// General Public License for more details.  You should have received a copy
+// of the GNU Lesser General Public License along with this program.  If not,
+// see <http://www.gnu.org/licenses/>.
+//
 package com.wordnik.system.mongodb
 
 import collection.immutable
@@ -20,13 +32,13 @@ import com.wordnik.persistence.DatabaseSchema
 //
 // example use:
 //
-// val p = new OplogResponder
-// def insertedClick(dbo: BasicDBObject) = println("Inserted click on %s".format(dbo.get("externalUid")) )
-// p.addInsertTrigger("smartwords.clickLog", insertedClick)
-// make a mistake? you can :
-// p.deleteInsertTrigger("smartwords.clickLog", insertedClick)
+// val oplog = DBCollection = MongoDBConnectionManager.getOplog(databaseSchema)
+// new OplogResponder(oplog, List("word")).
+//  addInsertTrigger("word.dictionary_entry", RelatedWordsTrigger.addRelatedWords).
+//  addUpdateTrigger("word.dictionary_entry", RelatedWordsTrigger.updateRelatedWords).
+//  start()
 
-// @param databaseSchema - DatabaseSchema
+// @param oplog - DBCollection (specifically, an oplog)
 // @param databasesToInclude - which databases or collections to include (can further limit to collections)
 // @param databasesToExclucde - which databases to exclude
 //
