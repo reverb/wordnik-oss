@@ -18,7 +18,6 @@ import java.io.IOException
 
 import scala.collection.JavaConverters._
 import com.mongodb.{ DBCollection, BasicDBObject }
-import com.wordnik.persistence.DatabaseSchema
 
 /**
  * User: will
