@@ -54,7 +54,9 @@ object MongoDBConnectionManager {
                 if (!server.db.isAuthenticated)
                   server.db.authenticate(user, server.password.toCharArray)
               }
-              case _ => server.db.slaveOk
+              case _ => {
+                server.db.setReadPreference(ReadPreference.secondaryPreferred)
+              }
             }
             output = Some(server.db)
           }
@@ -106,7 +108,7 @@ object MongoDBConnectionManager {
     }
     try {
       if (null == host) host = "localhost"
-      if (null == port || port <= 0) port = 27017
+      if (port <= 0) port = 27017
 
       LOGGER.finest("getting connection to " + host + ":" + port + "/" + schema + " with username: " + username + ", password: " + password)
 
@@ -176,7 +178,7 @@ object MongoDBConnectionManager {
         e.printStackTrace
         Member.UNKNOWN
       }
-      case _ =>
+      case _: Throwable =>
         throw new PersistenceException("Failed to detect replication type")
     }
   }
