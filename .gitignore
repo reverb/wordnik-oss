@@ -20,3 +20,4 @@ build-eclipse/
 .project
 .scala_dependencies
 .idea
+.idea_modules

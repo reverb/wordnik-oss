@@ -28,38 +28,38 @@ class ConnectionManagerTest extends FlatSpec with ShouldMatchers {
     assert(check != null)
   }
 
-  it should "get a connection to a replica set" in {
-    val db = MongoDBConnectionManager.getConnection(
-      "test-rs", "localhost", 27018, "test", null, null, SchemaType.READ_WRITE)
-  }
+  // it should "get a connection to a replica set" in {
+  //   val db = MongoDBConnectionManager.getConnection(
+  //     "test-rs", "localhost", 27018, "test", null, null, SchemaType.READ_WRITE)
+  // }
 
-  it should "get a replica set connection by friendly name" in {
-    // get it from the pool
-    val check = MongoDBConnectionManager.getConnection("test-rs", SchemaType.READ_WRITE)
-    assert(check != null)
-  }
+  // it should "get a replica set connection by friendly name" in {
+  //   // get it from the pool
+  //   val check = MongoDBConnectionManager.getConnection("test-rs", SchemaType.READ_WRITE)
+  //   assert(check != null)
+  // }
 
-  it should "test the MS oplog" in {
-    val oplog = MongoDBConnectionManager.getOplog("oplog-ms", "localhost:27017", null, null).get
-    assert(oplog != null)
+  // it should "test the MS oplog" in {
+  //   val oplog = MongoDBConnectionManager.getOplog("oplog-ms", "localhost:27017", null, null).get
+  //   assert(oplog != null)
 
-    val cursor = oplog.find()
-    cursor.addOption(Bytes.QUERYOPTION_TAILABLE)
-    cursor.addOption(Bytes.QUERYOPTION_AWAITDATA)
+  //   val cursor = oplog.find()
+  //   cursor.addOption(Bytes.QUERYOPTION_TAILABLE)
+  //   cursor.addOption(Bytes.QUERYOPTION_AWAITDATA)
 
-    cursor.next
-    println(MongoDBConnectionManager.pool)
-  }
+  //   cursor.next
+  //   println(MongoDBConnectionManager.pool)
+  // }
 
-  it should "test the RS oplog" in {
-    val oplog = MongoDBConnectionManager.getOplog("oplog-rs", "localhost:27019", null, null).get
-    assert(oplog != null)
+  // it should "test the RS oplog" in {
+  //   val oplog = MongoDBConnectionManager.getOplog("oplog-rs", "localhost:27019", null, null).get
+  //   assert(oplog != null)
 
-    val cursor = oplog.find()
-    cursor.addOption(Bytes.QUERYOPTION_TAILABLE)
-    cursor.addOption(Bytes.QUERYOPTION_AWAITDATA)
+  //   val cursor = oplog.find()
+  //   cursor.addOption(Bytes.QUERYOPTION_TAILABLE)
+  //   cursor.addOption(Bytes.QUERYOPTION_AWAITDATA)
 
-    cursor.next
-    println(MongoDBConnectionManager.pool)
-  }
+  //   cursor.next
+  //   println(MongoDBConnectionManager.pool)
+  // }
 }
