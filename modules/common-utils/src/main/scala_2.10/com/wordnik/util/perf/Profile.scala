@@ -9,7 +9,7 @@ import com.yammer.metrics.core.MetricName
 /**
  * A utility for fine-grained code instrumentation.
  * Simply pass a function to the Profile class with a name and the Profiler will keep track of performance statistics.
- * It registers timings and has support for akka's futures
+ * It registers timings and has support for scala's futures
  *
  * <pre>
  * // For application level metrics
