@@ -6,7 +6,7 @@ This project contains a number of tools for administering a MongoDB Deployment
 ### To run
 <pre>
 cd ../..
-sbt mongo-admin-utils/dist:stage
+./sbt dist:stage
 
 cd modules/mongo-admin-utils
 ./bin/run.sh <tool-class> <options>

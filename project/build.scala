@@ -3,6 +3,7 @@ import sbt._
 import Keys._
 import xml.Group
 import org.sbtidea.SbtIdeaPlugin._
+import sbtrelease.ReleasePlugin._
 
 object WordnikOssProject extends Build {
   
@@ -60,7 +61,7 @@ object WordnikOssProject extends Build {
     )}
   )
 
-  val projectSettings = Defaults.defaultSettings ++ Seq(
+  val projectSettings = Defaults.defaultSettings ++ releaseSettings ++ Seq(
     organization := "com.wordnik",
     scalaVersion := "2.9.2",
     crossScalaVersions := Seq("2.9.1", "2.9.1-1", "2.9.2", "2.10.0"),
