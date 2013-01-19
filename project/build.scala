@@ -1,5 +1,7 @@
 import sbt._
 import Keys._
+import xml.Group
+import org.sbtidea.SbtIdeaPlugin._
 
 object WordnikOssProject extends Build {
   
@@ -69,7 +71,8 @@ object WordnikOssProject extends Build {
       case v if v startsWith "2.10" => Seq("-feature")
       case _ => Seq.empty
     }),
-    parallelExecution in Test := false
+    parallelExecution in Test := false,
+    ideaBasePackage := Some("com.wordnik")
   )
 
   lazy val root = 
@@ -82,12 +85,12 @@ object WordnikOssProject extends Build {
     base = file("modules/common-utils"),
     settings = projectSettings ++ Seq(
       libraryDependencies ++= Seq(
-        "commons-lang" % "commons-lang" % "2.6",
-        "org.slf4j" % "slf4j-api" % "1.7.2",
-        "org.slf4j" % "slf4j-log4j12" % "1.7.2" % "provided",
-        "com.novocode" % "junit-interface" % "0.10-M2" % "test",
-        "org.scalatest" %% "scalatest" % "1.9.1" % "test",
-        "junit" % "junit" % "4.11" % "test"
+        "commons-lang"                 % "commons-lang"               % "2.6",
+        "org.slf4j"                    % "slf4j-api"                  % "1.7.2",
+        "org.slf4j"                    % "slf4j-log4j12"              % "1.7.2"   % "provided",
+        "com.novocode"                 % "junit-interface"            % "0.10-M2" % "test",
+        "org.scalatest"               %% "scalatest"                  % "1.9.1"   % "test",
+        "junit"                        % "junit"                      % "4.11"    % "test"
       )
     )
   )
@@ -97,14 +100,19 @@ object WordnikOssProject extends Build {
     base = file("modules/mongo-utils"),
     settings = projectSettings ++ Seq(
       libraryDependencies ++= Seq(
-        "org.mongodb" % "mongo-java-driver" % "2.10.1",
-        "com.fasterxml.jackson.jaxrs" % "jackson-jaxrs-xml-provider" % "2.1.2")
+        "org.mongodb"                  % "mongo-java-driver"          % "2.10.1",
+        "com.fasterxml.jackson.jaxrs"  % "jackson-jaxrs-xml-provider" % "2.1.2",
+        "org.slf4j"                    % "slf4j-api"                  % "1.7.2",
+        "org.slf4j"                    % "slf4j-log4j12"              % "1.7.2"   % "provided",
+        "com.novocode"                 % "junit-interface"            % "0.10-M2" % "test",
+        "org.scalatest"               %% "scalatest"                  % "1.9.1"   % "test",
+        "junit"                        % "junit"                      % "4.11"    % "test")
     )
-  ) dependsOn(commonUtils % "compile;test->test")
+  )
 
   lazy val mongoAdminUtils = Project(
     id = "mongo-admin-utils",
     base = file("modules/mongo-admin-utils"),
     settings = projectSettings
-  ) dependsOn(commonUtils % "compile;test->test", mongoUtils % "compile;test->test")
+  ) dependsOn(mongoUtils % "compile;test->test")
 }
