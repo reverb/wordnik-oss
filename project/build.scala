@@ -8,6 +8,7 @@ import sbtrelease.ReleasePlugin._
 object WordnikOssProject extends Build {
   
   import Resolvers._
+  import Dependencies._
 
   val manifestSetting = packageOptions <+= (name, version, organization) map {
     (title, version, vendor) =>
@@ -61,6 +62,12 @@ object WordnikOssProject extends Build {
     )}
   )
 
+  def versionSpecificSourcesIn(c: Configuration) =
+    unmanagedSourceDirectories in c <+= (scalaVersion, sourceDirectory in c) {
+      case (v, dir) if v startsWith "2.9" => dir / "scala_2.9"
+      case (v, dir) if v startsWith "2.10" => dir / "scala_2.10"
+    }
+
   val projectSettings = Defaults.defaultSettings ++ releaseSettings ++ Seq(
     organization := "com.wordnik",
     scalaVersion := "2.9.2",
@@ -74,7 +81,9 @@ object WordnikOssProject extends Build {
       case _ => Seq.empty
     }),
     parallelExecution in Test := false,
-    ideaBasePackage := Some("com.wordnik")
+    ideaBasePackage := Some("com.wordnik"),
+    libraryDependencies ++= slf4j,
+    libraryDependencies ++= testDependencies
   )
 
   lazy val root = 
@@ -86,14 +95,12 @@ object WordnikOssProject extends Build {
     id = "common-utils",
     base = file("modules/common-utils"),
     settings = projectSettings ++ Seq(
-      libraryDependencies ++= Seq(
-        "commons-lang"                 % "commons-lang"               % "2.6",
-        "org.slf4j"                    % "slf4j-api"                  % "1.7.2",
-        "org.slf4j"                    % "slf4j-log4j12"              % "1.7.2"   % "provided",
-        "com.novocode"                 % "junit-interface"            % "0.10-M2" % "test",
-        "org.scalatest"               %% "scalatest"                  % "1.9.1"   % "test",
-        "junit"                        % "junit"                      % "4.11"    % "test"
-      )
+      libraryDependencies ++= Seq(commonsLang, metricsCore),
+      libraryDependencies <++= scalaVersion({
+        case v if v startsWith "2.9" => Seq(akka)
+        case _                       => Seq.empty
+      }),
+      versionSpecificSourcesIn(Compile)
     )
   )
 
@@ -101,14 +108,7 @@ object WordnikOssProject extends Build {
     id = "mongo-utils",
     base = file("modules/mongo-utils"),
     settings = projectSettings ++ Seq(
-      libraryDependencies ++= Seq(
-        "org.mongodb"                  % "mongo-java-driver"          % "2.10.1",
-        "com.fasterxml.jackson.jaxrs"  % "jackson-jaxrs-xml-provider" % "2.1.2",
-        "org.slf4j"                    % "slf4j-api"                  % "1.7.2",
-        "org.slf4j"                    % "slf4j-log4j12"              % "1.7.2"   % "provided",
-        "com.novocode"                 % "junit-interface"            % "0.10-M2" % "test",
-        "org.scalatest"               %% "scalatest"                  % "1.9.1"   % "test",
-        "junit"                        % "junit"                      % "4.11"    % "test")
+      libraryDependencies ++= Seq(mongoJava, jackonsJaxRs)
     )
   )
 
