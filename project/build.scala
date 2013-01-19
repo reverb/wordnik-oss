@@ -2,6 +2,8 @@ import sbt._
 import Keys._
 
 object WordnikOssProject extends Build {
+  
+  import Resolvers._
 
   val manifestSetting = packageOptions <+= (name, version, organization) map {
     (title, version, vendor) =>
@@ -20,21 +22,44 @@ object WordnikOssProject extends Build {
   }
 
   val publishSettings: Seq[Setting[_]] = Seq(
-    publishTo <<= (version) { v: String =>
-      val artifactory = "https://ci.aws.wordnik.com/artifactory/m2-"
-      if (v.trim.endsWith("SNAPSHOT"))
-        Some("snapshots" at artifactory + "snapshots")
-      else
-        Some("releases"  at artifactory + "releases")
+    publishTo <<= (version) { version: String =>
+      if (version.trim endsWith "SNAPSHOT") Some(sonatypeNexusSnapshots) else Some(sonatypeNexusStaging)
     },
     publishMavenStyle := true,
     publishArtifact in Test := false,
-    pomIncludeRepository := { x => false }
+    pomIncludeRepository := { x => false },
+    homepage := Some(new URL("https://github.com/wordnik/wordnik-oss")),
+    startYear := Some(2009),
+    licenses := Seq(("Apache License 2.0", new URL("http://www.apache.org/licenses/LICENSE-2.0.html"))),
+    pomExtra <<= (pomExtra, name, description) {(pom, name, desc) => pom ++ Group(
+      <scm>
+        <connection>scm:git:git@github.com:wordnik/wordnik-oss.git</connection>
+        <developerConnection>scm:git:git@github.com:wordnik/wordnik-oss.git</developerConnection>
+        <url>https://github.com/wordnik/wordnik-oss</url>
+      </scm>
+      <developers>
+        <developer>
+          <id>fehguy</id>
+          <name>Tony Tam</name>
+          <email>fehguy@gmail.com</email>
+        </developer>
+      </developers>
+      <issueManagement>
+        <system>github</system>
+        <url>https://github.com/wordnik/wordnik-oss/issues</url>
+      </issueManagement>
+      <mailingLists>
+        <mailingList>
+          <name>wordnik-api</name>
+          <archive>https://groups.google.com/forum/#!forum/wordnik-api</archive>
+        </mailingList>
+      </mailingLists>
+    )}
   )
 
   val projectSettings = Defaults.defaultSettings ++ Seq(
     organization := "com.wordnik",
-    scalaVersion := "2.9.1",
+    scalaVersion := "2.9.2",
     crossScalaVersions := Seq("2.9.1", "2.9.1-1", "2.9.2", "2.10.0"),
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-optimize", "-Xcheckinit", "-encoding", "utf8"),
     crossVersion := CrossVersion.binary,
