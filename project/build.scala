@@ -1,3 +1,4 @@
+import com.wordnik.sbt.DistPlugin
 import sbt._
 import Keys._
 import xml.Group
@@ -113,6 +114,6 @@ object WordnikOssProject extends Build {
   lazy val mongoAdminUtils = Project(
     id = "mongo-admin-utils",
     base = file("modules/mongo-admin-utils"),
-    settings = projectSettings
+    settings = projectSettings ++ DistPlugin.distSettings
   ) dependsOn(mongoUtils % "compile;test->test")
 }
