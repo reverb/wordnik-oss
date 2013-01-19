@@ -6,15 +6,57 @@ import java.util.concurrent.TimeUnit
 import util.control.Exception.allCatch
 import com.yammer.metrics.core.MetricName
 
+/**
+ * A utility for fine-grained code instrumentation.
+ * Simply pass a function to the Profile class with a name and the Profiler will keep track of performance statistics.
+ * It registers timings and has support for akka's futures
+ *
+ * <pre>
+ * // For application level metrics
+ * Profile.global("delete user")) {
+ *   // do something
+ * }
+ *
+ * // or for instance level metrics
+ * val profiler = Profile[UserDao]
+ * profiler("delete user") {
+ *   // do something
+ * }
+ * </pre>
+ *
+ */
 object Profile {
 
-  class Global
+  private class Global
 
-  def global: Profiler = apply[Global]
+  /**
+   * Provides a global profiler to group application level metrics together
+   * @return a global profiler instance
+   */
+  lazy val global: Profiler = apply[Global]
 
+  /**  A metrics collector */
   trait Profiler {
+    /**
+     * Profile the provided block of code
+     * @param name The name for this metric
+     * @param scope An optional scope for this metric
+     * @param thunk The block of code to profile
+     * @tparam T The result type of the code block
+     * @return The result of the code block
+     */
     def apply[T](name: String, scope: String = null)(thunk: ⇒ T): T
-    def profile[T](name: String, scope: String = null)(thunk: ⇒ T): T = apply(name, scope)(thunk)
+
+    /**
+     * Profile the provided block of code
+     * @param name The name for this metric
+     * @param scope An optional scope for this metric
+     * @param thunk The block of code to profile
+     * @tparam T The result type of the code block
+     * @return The result of the code block
+     */
+    def profile[T](name: String, scope: String = null)(thunk: ⇒ T): T =
+      apply(name, scope)(thunk)
   }
   private class DefaultProfiler(group: String, `type`: String) extends Profiler {
 
