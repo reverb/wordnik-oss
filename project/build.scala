@@ -68,7 +68,7 @@ object WordnikOssProject extends Build {
       case (v, dir) if v startsWith "2.10" => dir / "scala_2.10"
     }
 
-  val projectSettings = Defaults.defaultSettings ++ releaseSettings ++ Seq(
+  val projectSettings = Defaults.defaultSettings ++ releaseSettings ++ publishSettings ++ Seq(
     organization := "com.wordnik",
     scalaVersion := "2.9.2",
     crossScalaVersions := Seq("2.9.1", "2.9.1-1", "2.9.2", "2.10.0"),
