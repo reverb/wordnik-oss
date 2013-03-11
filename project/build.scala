@@ -70,7 +70,7 @@ object WordnikOssProject extends Build {
 
   val projectSettings = Defaults.defaultSettings ++ releaseSettings ++ publishSettings ++ Seq(
     organization := "com.wordnik",
-    scalaVersion := "2.9.2",
+    scalaVersion := "2.10.0",
     crossScalaVersions := Seq("2.9.1", "2.9.1-1", "2.9.2", "2.10.0"),
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-optimize", "-Xcheckinit", "-encoding", "utf8"),
     crossVersion := CrossVersion.binary,
@@ -83,7 +83,11 @@ object WordnikOssProject extends Build {
     parallelExecution in Test := false,
     ideaBasePackage := Some("com.wordnik"),
     libraryDependencies ++= slf4j,
-    libraryDependencies ++= testDependencies
+    libraryDependencies ++= testDependencies,
+    resolvers <++= scalaVersion {
+      case v if v.startsWith("2.9") => Seq(Classpaths.typesafeReleases)
+      case _ => Seq.empty
+    }
   )
 
   lazy val root = 
