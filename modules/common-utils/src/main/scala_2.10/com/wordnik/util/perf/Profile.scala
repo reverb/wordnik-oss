@@ -77,6 +77,11 @@ object Profile {
         r
       }
     }
+
+    def clear(name: String, scope: String = null) {
+      val timer = Metrics.newTimer(new MetricName(group, `type`, name, scope), TimeUnit.MILLISECONDS, TimeUnit.MINUTES)
+      timer.clear()
+    }
   }
 
   /**
