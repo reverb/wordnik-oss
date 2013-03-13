@@ -59,6 +59,8 @@ object Profile {
      */
     def profile[T](name: String, scope: String = null)(thunk: ⇒ T)(implicit executor: ExecutionContext): T =
       apply(name, scope)(thunk)
+
+    def clear(name: String, scope: String = null)
   }
   private class DefaultProfiler(group: String, `type`: String) extends Profiler {
     def apply[T](name: String, scope: String = null)(thunk: ⇒ T)(implicit executor: ExecutionContext): T = {

@@ -57,6 +57,8 @@ object Profile {
      */
     def profile[T](name: String, scope: String = null)(thunk: ⇒ T): T =
       apply(name, scope)(thunk)
+
+    def clear(name: String, scope: String = null)
   }
   private class DefaultProfiler(group: String, `type`: String) extends Profiler {
 
@@ -74,6 +76,11 @@ object Profile {
         }
         r
       }
+    }
+
+    def clear(name: String, scope: String = null) {
+      val timer = Metrics.newTimer(new MetricName(group, `type`, name, scope), TimeUnit.MILLISECONDS, TimeUnit.MINUTES)
+      timer.clear()
     }
   }
 
