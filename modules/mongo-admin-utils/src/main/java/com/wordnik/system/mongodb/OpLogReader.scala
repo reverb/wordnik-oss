@@ -24,7 +24,7 @@ import java.io.IOException
 
 class OpLogReader extends OplogRecordProcessor {
 
-  val recordTriggers = new mutable.HashSet[Function1[BasicDBObject, Unit]]
+  val recordTriggers = new mutable.HashSet[BasicDBObject => Unit]
 
   @throws(classOf[Exception])
   def processRecord(dbo: BasicDBObject) = {
