@@ -28,7 +28,7 @@ object WordnikOssProject extends Build {
 
   val publishSettings: Seq[Setting[_]] = Seq(
     publishTo <<= (version) { version: String =>
-      if (version.trim endsWith "SNAPSHOT") Some(sonatypeNexusSnapshots) else Some(sonatypeNexusStaging)
+      if (version.trim endsWith "SNAPSHOT") Some(Opts.resolver.sonatypeSnapshots) else Some(Opts.resolver.sonatypeStaging)
     },
     publishMavenStyle := true,
     publishArtifact in Test := false,

@@ -5,6 +5,7 @@ import scala.collection.JavaConversions._
 import runtime.ScalaRunTime
 import collection.mutable
 import org.slf4j.LoggerFactory
+import annotation.switch
 
 object SchemaType {
   val READ_ONLY = 1
@@ -12,13 +13,16 @@ object SchemaType {
 }
 
 object MongoDBConnectionManager {
-  val LOGGER = LoggerFactory.getLogger(MongoDBConnectionManager.getClass.getName.replaceAll("\\$$", ""))
+
+  val Logger = LoggerFactory.getLogger(MongoDBConnectionManager.getClass.getName.replaceAll("\\$$", ""))
   val mongos = new mutable.HashMap[String, Member]
   val pool = new mutable.HashMap[String, List[DBServer]].withDefaultValue(Nil)
 
+  @deprecated("Use the Logger property instead.", "1.3.0")
+  val LOGGER = Logger
   @throws(classOf[PersistenceException])
   def getConnection(schemaName: String, schemaType: Int): DB = {
-    LOGGER.debug("getting from, key: " + schemaName + ", schemaType: " + schemaType)
+    Logger.debug("getting from, key: " + schemaName + ", schemaType: " + schemaType)
 
     val snl = schemaName.toLowerCase
     if (!pool.contains(snl)) throw new PersistenceException("no configurations found for " + schemaName)
@@ -67,17 +71,17 @@ object MongoDBConnectionManager {
     val password = if (pw == null) "" else pw
 
     try {
-      LOGGER.debug("getting connection to " + host + ":" + port + "/" + schema + " with username: " + username + ", password: " + password)
+      Logger.debug("getting connection to " + host + ":" + port + "/" + schema + " with username: " + username + ", password: " + password)
 
       val schemaId = (host + ":" + port + ":" + schema).toLowerCase
       mongos.get(schemaId) map { server =>
-        LOGGER.debug("getting " + schemaId + " from map")
+        Logger.debug("getting " + schemaId + " from map")
         val db = server.mongo.getDB(schema)
         val replicationType = detectReplicationType(db, username, password)
-        LOGGER.debug("all known servers: " + db.getMongo.getServerAddressList)
+        Logger.debug("all known servers: " + db.getMongo.getServerAddressList)
         addServer(friendlyName, schema, db, username, password, replicationType)
       } getOrElse {
-        LOGGER.debug("creating " + schemaId)
+        Logger.debug("creating " + schemaId)
         val sa = new ServerAddress(host, port)
         val single = new Mongo(sa)
 
@@ -87,12 +91,12 @@ object MongoDBConnectionManager {
         val mongo = if (replicationType == Member.RS) new Mongo(List(sa)) else single
         val db = mongo.getDB(schema)
         mongos += schemaId -> new Member(replicationType, mongo)
-        LOGGER.debug("schemaName: " + friendlyName + ", schemaId: " + schemaId)
+        Logger.debug("schemaName: " + friendlyName + ", schemaId: " + schemaId)
         addServer(friendlyName, schema, db, username, password, replicationType)
       }
     } catch {
       case e: Exception => {
-        LOGGER.error("can't get connection to " + host + ":" + port + "/" + schema + " with username " + username + ", password " + password)
+        Logger.error("can't get connection to " + host + ":" + port + "/" + schema + " with username " + username + ", password " + password)
         throw new PersistenceException(e)
       }
     }
@@ -103,7 +107,7 @@ object MongoDBConnectionManager {
       username foreach (db.authenticate(_, password.toCharArray))
       val stat = db.command("isMaster")
       if (stat.containsField("setName") && username.isEmpty) {
-        LOGGER.debug("detected replica set")
+        Logger.debug("detected replica set")
         Member.RS
       } else if (stat.containsField("ismaster")) {
         if (stat.getBoolean("ismaster" , false)) Member.M
@@ -111,7 +115,7 @@ object MongoDBConnectionManager {
       } else Member.UNKNOWN
     } catch {
       case e: Exception =>
-        LOGGER.warn("Unable to detect the replication type, falling back to unknown", e)
+        Logger.warn("Unable to detect the replication type, falling back to unknown", e)
         Member.UNKNOWN
       case _: Throwable =>
         throw new PersistenceException("Failed to detect replication type")
@@ -124,7 +128,7 @@ object MongoDBConnectionManager {
 
     val dbServer = new DBServer(db, username, password, replicationType)
     pool += snl -> (if (!serverList.contains(dbServer)) dbServer :: serverList else serverList)
-    LOGGER.debug("adding to pool, key: " + snl + ", db: " + db)
+    Logger.debug("adding to pool, key: " + snl + ", db: " + db)
     db
   }
 }

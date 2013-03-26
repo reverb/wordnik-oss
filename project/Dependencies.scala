@@ -4,12 +4,12 @@ object Dependencies {
   object V {
     val commonsLang  = "2.6"
     val metrics      = "2.2.0"
-    val slf4j        = "1.7.2"
+    val slf4j        = "1.7.3"
     val junitSupport = "0.10-M2"
     val scalaTest    = "1.9.1"
     val junit        = "4.11"
     val mongo        = "2.10.1"
-    val jackson      = "2.1.2"
+    val jackson      = "2.1.4"
     val akka         = "2.0.5"
   }
 
