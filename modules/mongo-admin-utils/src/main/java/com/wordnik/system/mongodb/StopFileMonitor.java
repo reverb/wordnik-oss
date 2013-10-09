@@ -28,14 +28,14 @@ public class StopFileMonitor extends Thread {
 				if(file.exists() || tailThread.killMe){
 					System.out.println("found stop file, exiting, exit on stop setting is " + tailThread.exitOnStopThread);
 					tailThread.killMe = true;
-                    tailThread.interrupt();
-                    if(tailThread.exitOnStopThread){
-                        System.out.println("Exiting the JVM because of exit on stop thread");
-                        file.delete();
-                        System.exit(-1);
-                    }else{
-                        file.deleteOnExit();
-                    }
+          tailThread.interrupt();
+          if(tailThread.exitOnStopThread){
+              System.out.println("Exiting the JVM because of exit on stop thread");
+              file.delete();
+              System.exit(-1);
+          }else{
+              file.deleteOnExit();
+          }
 
 					return;
 				}

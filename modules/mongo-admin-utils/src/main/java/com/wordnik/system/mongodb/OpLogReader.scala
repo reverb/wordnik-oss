@@ -23,7 +23,6 @@ import java.io.IOException
  */
 
 class OpLogReader extends OplogRecordProcessor {
-
   val recordTriggers = new mutable.HashSet[Function1[BasicDBObject, Unit]]
 
   @throws(classOf[Exception])
@@ -32,8 +31,5 @@ class OpLogReader extends OplogRecordProcessor {
   }
 
   @throws(classOf[IOException])
-  def close(string: String) = {
-
-  }
-
+  def close(string: String) = {}
 }
