@@ -13,37 +13,23 @@
 package com.wordnik.system.mongodb;
 
 import java.io.BufferedReader;
-import java.io.InputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
-import org.bson.BSONObject;
-import org.bson.LazyBSONList;
-import org.bson.LazyBSONObject;
-import org.bson.LazyDBList;
 import org.bson.types.BSONTimestamp;
 
-import com.mongodb.BasicDBList;
-import com.mongodb.LazyDBDecoder;
-import com.mongodb.LazyDBObject;
 import com.mongodb.BasicDBObject;
 import com.mongodb.Bytes;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
-import com.mongodb.DBDecoder;
-import com.mongodb.DBDecoderFactory;
 import com.wordnik.util.PrintFormat;
 
 public class OplogTailThread extends Thread {
@@ -55,7 +41,7 @@ public class OplogTailThread extends Thread {
 	protected OplogRecordProcessor processor;
 	protected DBCollection oplog;
 	protected String OPLOG_LAST_FILENAME = "last_timestamp.txt";
-  protected boolean exitOnStopThread = false;
+    protected boolean exitOnStopThread = false;
 
 	public OplogTailThread(OplogRecordProcessor processor, DBCollection oplog){
 		this.oplog = oplog;
@@ -64,9 +50,9 @@ public class OplogTailThread extends Thread {
 	}
 
   public OplogTailThread(OplogRecordProcessor processor, DBCollection oplog, String threadName){
-    this.oplog = oplog;
-    this.processor = processor;
-    setName(threadName);
+      this.oplog = oplog;
+      this.processor = processor;
+      setName(threadName);
   }
 
   public void setBaseDir(String dir){
@@ -75,15 +61,15 @@ public class OplogTailThread extends Thread {
 		}
 	}
 
-  public void setBaseDir(String dir, String fileName){
-    if(dir != null && fileName != null){
-      OPLOG_LAST_FILENAME = dir + File.separator + fileName;
+    public void setBaseDir(String dir, String fileName){
+        if(dir != null && fileName != null){
+            OPLOG_LAST_FILENAME = dir + File.separator + fileName;
+        }
     }
-  }
 
-  public void setExitOnStopThread(Boolean isExit){
-    exitOnStopThread = isExit;
-  }
+    public void setExitOnStopThread(Boolean isExit){
+        exitOnStopThread = isExit;
+    }
 
 	public void setInclusions(List<String> inclusions){
 		this.inclusions = inclusions;
@@ -144,177 +130,114 @@ public class OplogTailThread extends Thread {
 		try{
 			lastTimestamp = getLastTimestamp();
 
-	    long lastWrite = 0;
-	    long startTime = System.currentTimeMillis();
-	    long lastOutput = System.currentTimeMillis();
-	  	while(true){
-	  		try{
-			  	if(killMe){
-			  		System.out.println("exiting thread");
-			  		return;
-			  	}
-		      DBCursor cursor = null;
-      		oplog.setDBDecoderFactory(OplogDecoder.FACTORY);
-		      if(lastTimestamp != null){
-		        cursor = oplog.find( new BasicDBObject( "ts" , new BasicDBObject( "$gt" , lastTimestamp ) ) );
-		        cursor.addOption( Bytes.QUERYOPTION_OPLOGREPLAY );
-		      }
-		      else{
-		      	cursor = oplog.find();
-		      }
-		      cursor.addOption( Bytes.QUERYOPTION_TAILABLE );
-		      cursor.addOption( Bytes.QUERYOPTION_AWAITDATA );
-		      long count = 0;
-		      long skips = 0;
+            long lastWrite = 0;
+            long startTime = System.currentTimeMillis();
+            long lastOutput = System.currentTimeMillis();
+        	while(true){
+        		try{
+	            	if(killMe){
+	            		System.out.println("exiting thread");
+	            		return;
+	            	}
+    	            DBCursor cursor = null;
+    	            if(lastTimestamp != null){
+                        cursor = oplog.find( new BasicDBObject( "ts" , new BasicDBObject( "$gt" , lastTimestamp ) ) );
+                        cursor.addOption( Bytes.QUERYOPTION_OPLOGREPLAY );
+    	            }
+    	            else{
+    	            	cursor = oplog.find();
+    	            }
+    	            cursor.addOption( Bytes.QUERYOPTION_TAILABLE );
+    	            cursor.addOption( Bytes.QUERYOPTION_AWAITDATA );
+    	            long count = 0;
+    	            long skips = 0;
 
-	      	while (!killMe && cursor.hasNext() ){
-	        	DBObject x = cursor.next();
-	          	if(!killMe) {
-	              lastTimestamp = (BSONTimestamp)x.get("ts");
-	              if(shouldWrite(x)){
-	                processor.processRecord((BasicDBObject)x);
-	                count++;
-	              }
-	              else{
-	                skips++;
-	              }
-	              if(System.currentTimeMillis() - lastWrite > 1000){
-	                writeLastTimestamp(lastTimestamp);
-	                lastWrite = System.currentTimeMillis();
-	              }
-	              long duration = System.currentTimeMillis() - lastOutput;
-	              if(duration > reportInterval){
-	                report(this.getName(), count, skips, System.currentTimeMillis() - startTime);
-	                lastOutput = System.currentTimeMillis();
-	              }
+    	            while (!killMe && cursor.hasNext() ){
+		                DBObject x = cursor.next();
+                        if(!killMe) {
+                            lastTimestamp = (BSONTimestamp)x.get("ts");
+                            if(shouldWrite(x)){
+                                processor.processRecord((BasicDBObject)x);
+                                count++;
+                            }
+                            else{
+                                skips++;
+                            }
+                            if(System.currentTimeMillis() - lastWrite > 1000){
+                                writeLastTimestamp(lastTimestamp);
+                                lastWrite = System.currentTimeMillis();
+                            }
+                            long duration = System.currentTimeMillis() - lastOutput;
+                            if(duration > reportInterval){
+                                report(this.getName(), count, skips, System.currentTimeMillis() - startTime);
+                                lastOutput = System.currentTimeMillis();
+                            }
+                        }
+		            }
 	            }
-	          }
-	        }
-	        catch(com.mongodb.MongoException.CursorNotFound ex){
-	        	writeLastTimestamp(lastTimestamp);
-	        	System.out.println("Cursor not found, waiting");
-	        	Thread.sleep(2000);
-	        }
-	        catch(com.mongodb.MongoInternalException ex){
-	        	System.out.println("Cursor not found, waiting");
-	        	writeLastTimestamp(lastTimestamp);
-	        	ex.printStackTrace();
-	        }
-	        catch(com.mongodb.MongoException ex){
-	        	writeLastTimestamp(lastTimestamp);
-	        	System.out.println("Internal exception, waiting");
-	        	Thread.sleep(2000);
-	        }
-	        catch(Exception ex){
-	        	killMe = true;
-	        	writeLastTimestamp(lastTimestamp);
-	        	ex.printStackTrace();
-	        	break;
-	        }
-	      }
-				Thread.sleep(1000);
+	            catch(com.mongodb.MongoException.CursorNotFound ex){
+	            	writeLastTimestamp(lastTimestamp);
+	            	System.out.println("Cursor not found, waiting");
+	            	Thread.sleep(2000);
+	            }
+	            catch(com.mongodb.MongoInternalException ex){
+	            	System.out.println("Cursor not found, waiting");
+	            	writeLastTimestamp(lastTimestamp);
+	            	ex.printStackTrace();
+	            }
+	            catch(com.mongodb.MongoException ex){
+	            	writeLastTimestamp(lastTimestamp);
+	            	System.out.println("Internal exception, waiting");
+	            	Thread.sleep(2000);
+	            }
+	            catch(Exception ex){
+	            	killMe = true;
+	            	writeLastTimestamp(lastTimestamp);
+	            	ex.printStackTrace();
+	            	break;
+	            }
+            }
+			Thread.sleep(1000);
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
+		finally{
+			writeLastTimestamp(lastTimestamp);
+			try{
+				processor.close("oplog");
 			}
 			catch(Exception e){
 				e.printStackTrace();
 			}
-			finally{
-				writeLastTimestamp(lastTimestamp);
-				try{
-					processor.close("oplog");
-				}
-				catch(Exception e){
-					e.printStackTrace();
-				}
-			}
-			running = false;
 		}
+		running = false;
+	}
 
-		boolean shouldWrite(DBObject obj){
-    String ns = (String)obj.get("ns");
-    if(ns == null || "".equals(ns)){
+	boolean shouldWrite(DBObject obj){
+        String ns = (String)obj.get("ns");
+        if(ns == null || "".equals(ns)){
+        	return false;
+        }
+        if(exclusions.size() == 0 && inclusions.size() == 0){
+        	return true;
+        }
+    	if(exclusions.contains(ns)){
+    		return false;
+    	}
+    	if(inclusions.contains(ns) || inclusions.contains("*")){
+    		return true;
+    	}
+    	//	check database-level inclusion
+    	if(ns.indexOf('.') > 0 && inclusions.contains(ns.substring(0, ns.indexOf('.')))){
+    		return true;
+    	}
+
     	return false;
-    }
-    if(exclusions.size() == 0 && inclusions.size() == 0){
-    	return true;
-    }
-  	if(exclusions.contains(ns)){
-  		return false;
-  	}
-  	if(inclusions.contains(ns) || inclusions.contains("*")){
-  		return true;
-  	}
-  	//	check database-level inclusion
-  	if(ns.indexOf('.') > 0 && inclusions.contains(ns.substring(0, ns.indexOf('.')))){
-  		return true;
-  	}
-  	return false;
 	}
 
 	void report(String collectionName, long count, long skips, long duration){
 		double brate = (double)count / ((duration) / 1000.0);
 		System.out.println(collectionName + ": " + PrintFormat.LONG_FORMAT.format(count) + " records, " + PrintFormat.LONG_FORMAT.format(brate) + " req/sec, " + PrintFormat.LONG_FORMAT.format(skips) + " skips");
-	}
-
-	public static class OplogDecoder extends LazyDBDecoder  {
-		@Override
-		public DBObject decode(byte[] b, DBCollection collection) {
-			LazyDBObject dbObj = (LazyDBObject) super.decode(b, collection);
-			return deepClone(dbObj);
-		}
-
-		@Override
-		public DBObject decode(InputStream in, DBCollection collection) throws IOException {
-			LazyDBObject dbObj = (LazyDBObject) super.decode(in, collection);
-			return deepClone(dbObj);
-		}
-		public static class OplogDecoderFactory2 implements DBDecoderFactory {
-      @Override
-      public DBDecoder create( ){
-        return new OplogDecoder( );
-      }
-		} 
-
-    public static DBDecoderFactory FACTORY = new OplogDecoderFactory2();
-
-    private static BasicDBObject deepClone(LazyBSONObject source) {
-    	Set<Entry<String, Object>> entries = source.entrySet();
-    	BasicDBObject ret = new BasicDBObject(entries.size()*2);
-    	for(Entry<String, Object> e : entries) {
-	    	String key = e.getKey();
-	    	if (lazyList(e.getValue())){
-	    		List<Object> val = deepCloneList((LazyDBList) e.getValue());
-				ret.put(key, val);
-	    	} else if (lazyMap(e.getValue())){
-    			BasicDBObject val = deepClone((LazyDBObject) e.getValue());
-    			if(ret.containsField(key))
-    				((BSONObject)ret.get(key)).putAll((Map<String, Object>)val);
-    			else
-    				ret.put(key, val);
-    		} else
-    			ret.put(key, e.getValue());
-    	}
-    	return ret;
-    }
-    
-    private static boolean lazyList(Object o) {
-    	return (o instanceof LazyDBList || o instanceof LazyBSONList);
-    }
-
-    private static boolean lazyMap(Object o) {
-    	return (o instanceof LazyDBObject || o instanceof LazyBSONObject);
-    }
-    
-    private static BasicDBList deepCloneList(LazyBSONList val){
-    	BasicDBList aList = new BasicDBList();
-  		for(Object o : val) {
-  			if (lazyList(o))
-  				aList.add(deepCloneList((LazyDBList) o));    				
-  			else if (lazyMap(o))
-  				aList.add(deepClone((LazyDBObject) o));
-  			else
-  				aList.add(o);
-  		}
-  		return aList;
-    }
 	}
 }

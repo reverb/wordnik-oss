@@ -264,7 +264,7 @@ public class Analyzer extends MongoUtil {
 
   void report(long totalCount, long duration){
     double brate = (double)totalCount / ((duration) / 1000.0);
-    System.out.println("inserts: " + PrintFormat.LONG_FORMAT.format(inserts) + ", updates: " + PrintFormat.LONG_FORMAT.format(updates) + ", deletes: " + PrintFormat.LONG_FORMAT.format(deletes) + ", skips: " + PrintFormat.LONG_FORMAT.format(skips) + " (" + PrintFormat.LONG_FORMAT.format(brate) + " req/sec)");
+    // System.out.println("inserts: " + PrintFormat.LONG_FORMAT.format(inserts) + ", updates: " + PrintFormat.LONG_FORMAT.format(updates) + ", deletes: " + PrintFormat.LONG_FORMAT.format(deletes) + ", skips: " + PrintFormat.LONG_FORMAT.format(skips) + " (" + PrintFormat.LONG_FORMAT.format(brate) + " req/sec)");
 
     Writer writer = null;
     try{
