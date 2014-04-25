@@ -34,6 +34,7 @@ import com.mongodb.DBObject;
 import com.wordnik.util.PrintFormat;
 
 public class OplogTailThread extends Thread {
+  protected boolean enableOutput = true;
   protected boolean running = false;
   protected boolean killMe = false;
   protected long reportInterval = 10000;
@@ -54,6 +55,10 @@ public class OplogTailThread extends Thread {
     this.oplog = oplog;
     this.processors.add(processor);
     setName(threadName);
+  }
+
+  public void setOutputEnabled(boolean enabled) {
+    this.enableOutput = enabled;
   }
 
   public void setStopFilename(String filename) {
@@ -251,6 +256,7 @@ public class OplogTailThread extends Thread {
 
   void report(String collectionName, long count, long skips, long duration){
     double brate = (double)count / ((duration) / 1000.0);
-    System.out.println(collectionName + ": " + PrintFormat.LONG_FORMAT.format(count) + " records, " + PrintFormat.LONG_FORMAT.format(brate) + " req/sec, " + PrintFormat.LONG_FORMAT.format(skips) + " skips");
+    if(enableOutput)
+      System.out.println(collectionName + ": " + PrintFormat.LONG_FORMAT.format(count) + " records, " + PrintFormat.LONG_FORMAT.format(brate) + " req/sec, " + PrintFormat.LONG_FORMAT.format(skips) + " skips");
   }
 }
