@@ -65,12 +65,13 @@ object WordnikOssProject extends Build {
     unmanagedSourceDirectories in c <+= (scalaVersion, sourceDirectory in c) {
       case (v, dir) if v startsWith "2.9" => dir / "scala_2.9"
       case (v, dir) if v startsWith "2.10" => dir / "scala_2.10"
+      case (v, dir) if v startsWith "2.11" => dir / "scala_2.11"
     }
 
   val projectSettings = Defaults.defaultSettings ++ releaseSettings ++ publishSettings ++ Seq(
     organization := "com.wordnik",
-    scalaVersion := "2.10.0",
-    crossScalaVersions := Seq("2.9.1", "2.9.1-1", "2.9.2", "2.10.0", "2.10.2"),
+    scalaVersion := "2.11.1",
+    crossScalaVersions := Seq("2.10.0", "2.10.0", "2.10.4", "2.11.1"),
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-optimize", "-Xcheckinit", "-encoding", "utf8"),
     crossVersion := CrossVersion.binary,
     javacOptions in compile ++= Seq("-target", "1.6", "-source", "1.6", "-Xlint:deprecation"),

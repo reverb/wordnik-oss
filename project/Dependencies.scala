@@ -6,7 +6,7 @@ object Dependencies {
     val metrics      = "2.2.0"
     val slf4j        = "1.7.2"
     val junitSupport = "0.10-M2"
-    val scalaTest    = "1.9.1"
+    val scalaTest    = "2.2.0"
     val junit        = "4.11"
     val mongo        = "2.10.1"
     val jackson      = "2.1.2"
