@@ -4,7 +4,6 @@ import _root_.sbt._
 import classpath.ClasspathUtilities
 import Project.Initialize
 import Keys._
-import Defaults._
 
 object DistPlugin extends Plugin {
 

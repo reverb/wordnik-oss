@@ -2,7 +2,6 @@ import com.wordnik.sbt.DistPlugin
 import sbt._
 import Keys._
 import xml.Group
-import org.sbtidea.SbtIdeaPlugin._
 import sbtrelease.ReleasePlugin._
 
 object WordnikOssProject extends Build {
@@ -81,7 +80,6 @@ object WordnikOssProject extends Build {
       case _ => Seq.empty
     }),
     parallelExecution in Test := false,
-    ideaBasePackage := Some("com.wordnik"),
     libraryDependencies ++= slf4j,
     libraryDependencies ++= testDependencies,
     resolvers <++= scalaVersion {
