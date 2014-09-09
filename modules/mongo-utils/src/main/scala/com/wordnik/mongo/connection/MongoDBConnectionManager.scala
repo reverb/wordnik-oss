@@ -24,7 +24,7 @@ object MongoDBConnectionManager {
     LOGGER.finest("getting from, key: " + schemaName + ", schemaType: " + schemaType)
 
     val snl = schemaName.toLowerCase
-    if (!pool.contains(snl)) throw new PersistenceException("no configurations found for " + schemaName)
+    if (!pool.contains(snl)) throw PersistenceException("no configurations found for " + schemaName)
 
     val servers = pool(snl)
     var output: Option[DB] = None
@@ -71,7 +71,7 @@ object MongoDBConnectionManager {
 
     output match {
       case Some(db) => db
-      case _ => throw new PersistenceException("no configurations found for " + schemaName)
+      case _ => throw PersistenceException("no configurations found for " + schemaName)
     }
   }
 
@@ -144,7 +144,7 @@ object MongoDBConnectionManager {
     } catch {
       case e: Exception => {
         LOGGER.severe("can't get connection to " + host + ":" + port + "/" + schema + " with username " + username + ", password " + password);
-        throw new PersistenceException(e);
+        throw PersistenceException("can't get connection to " + host + ":" + port + "/" + schema + " with username " + username + ", password " + password, e);
       }
     }
   }
@@ -179,7 +179,7 @@ object MongoDBConnectionManager {
         Member.UNKNOWN
       }
       case _: Throwable =>
-        throw new PersistenceException("Failed to detect replication type")
+        throw PersistenceException("Failed to detect replication type")
     }
   }
 
