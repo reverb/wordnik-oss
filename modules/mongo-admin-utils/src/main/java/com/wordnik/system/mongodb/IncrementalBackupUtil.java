@@ -29,6 +29,8 @@ public class IncrementalBackupUtil extends MongoUtil {
 
 	protected static String OUTPUT_DIRECTORY;
 
+	protected static boolean START_FROM_NOW = false;
+
 	public static void main(String ... args){
 		if(!parseArgs(args)){
 			usage();
@@ -55,6 +57,9 @@ public class IncrementalBackupUtil extends MongoUtil {
 			thd.setBaseDir(OUTPUT_DIRECTORY);
 			thd.setInclusions(inclusions);
 			thd.setExclusions(exclusions);
+
+			if(START_FROM_NOW)
+				thd.writeTimestampToStartFromNow();
 
 			thd.start();
 
@@ -91,6 +96,9 @@ public class IncrementalBackupUtil extends MongoUtil {
 			case 'h':
 				DATABASE_HOST = args[++i];
 				break;
+			case 'n':
+				START_FROM_NOW = true;
+				break;
 			default:
 				System.out.println("unknown argument " + args[i]);
 				return false;
@@ -108,5 +116,6 @@ public class IncrementalBackupUtil extends MongoUtil {
 		System.out.println(" [-p : source database password]");
 		System.out.println(" [-s : max file size in MB, default 100]");
 		System.out.println(" [-Z : gzip files]");
+		System.out.println(" [-n : start from now]");
 	}
 }

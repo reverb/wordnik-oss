@@ -114,6 +114,24 @@ public class OplogTailThread extends Thread {
     }
   }
 
+  public void writeTimestampToStartFromNow(){
+    Writer writer = null;
+    try{
+      OutputStream out = new FileOutputStream(new File(OPLOG_LAST_FILENAME));
+      writer = new OutputStreamWriter(out, "UTF-8");
+      writer.write(Integer.toString((int) ((System.currentTimeMillis() / 1000L)-1)) + "|" + Integer.toString(1)); // -1 is for reliabilty just in case
+    }
+    catch(Exception e){
+      e.printStackTrace();
+    }
+    finally{
+      if(writer != null){
+        try{writer.close();}
+        catch(Exception e){}
+      }
+    }
+  }
+
   public BSONTimestamp getLastTimestamp() {
     BufferedReader input = null;
     try{
