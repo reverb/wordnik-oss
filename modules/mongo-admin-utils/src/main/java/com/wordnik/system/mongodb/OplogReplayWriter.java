@@ -26,7 +26,9 @@ public class OplogReplayWriter implements OplogRecordProcessor {
 	protected long updateCount;
 	protected long deleteCount;
 	protected long commandCount;
-	
+
+	protected Boolean accumulationMode = false;
+
 	public void addDatabaseMapping(String src, String dst){
 		DATABASE_MAPPING.put(src, dst);
 	}
@@ -83,6 +85,10 @@ public class OplogReplayWriter implements OplogRecordProcessor {
 		this.destinationDatabaseHost = destinationDatabaseHost;
 	}
 
+	public void setAccumulationMode() {
+		this.accumulationMode = true;
+	}
+
 	@Override
 	public void processRecord(BasicDBObject dbo) throws Exception {
 		String operationType = dbo.getString("op");
@@ -101,8 +107,11 @@ public class OplogReplayWriter implements OplogRecordProcessor {
 					coll.insert(operation);
 				}
 				else if("d".equals(operationType)){
-					deleteCount++;
-					coll.remove(operation);
+					if(!accumulationMode)
+					{
+						deleteCount++;
+						coll.remove(operation);
+					}
 				}
 				else if("u".equals(operationType)){
 					updateCount++;
