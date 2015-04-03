@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.zip.GZIPInputStream;
+import java.util.Arrays;
 
 import org.bson.BSONDecoder;
 import com.mongodb.DefaultDBDecoder;
@@ -125,6 +126,7 @@ public class ReplayUtil extends MongoUtil {
 
 		try{
 			File[] files = new File(INPUT_DIR).listFiles();
+			Arrays.sort(files);
 			if(files != null){
 				List<File> filesToProcess = new ArrayList<File>();
 				for(File file : files){
