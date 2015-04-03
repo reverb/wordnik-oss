@@ -38,6 +38,8 @@ public class ReplicationUtil extends MongoUtil {
 	protected static String OPLOG_LAST_FILENAME = "last_timestamp.txt";
 	protected static String COLLECTIONS_STRING;
 
+	protected static Boolean ACCUMULATION_MODE = false;
+
 	public static void main(String ... args){
 		if(!parseArgs(args)){
 			usage();
@@ -71,6 +73,8 @@ public class ReplicationUtil extends MongoUtil {
 		util.setDestinationDatabaseUsername(DEST_DATABASE_USER_NAME);
 		util.setDestinationDatabasePassword(DEST_DATABASE_PASSWORD);
 		util.setDestinationDatabaseHost(DEST_DATABASE_HOST);
+		if(ACCUMULATION_MODE)
+			util.setAccumulationMode();
 
 		try{
 			//	create and configure a tail thread
@@ -141,6 +145,9 @@ public class ReplicationUtil extends MongoUtil {
 			case 'm':
 				DATABASE_MAPPING = args[++i];
 				break;
+			case 'a':
+				ACCUMULATION_MODE = true;
+				break;
 			default:
 				System.out.println("unknown argument " + args[i]);
 				return false;
@@ -159,5 +166,6 @@ public class ReplicationUtil extends MongoUtil {
 		System.out.println(" [-U : target database username]");
 		System.out.println(" [-P : target database password]");
 		System.out.println(" -m : mapping between source + dest databases (a:a',b:b')");
+		System.out.println(" -a : accumulation mode (It means no deletion)");
 	}
 }
