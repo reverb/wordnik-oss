@@ -9,6 +9,8 @@ import java.util.logging.Logger
 import scala.collection.JavaConversions._
 import scala.collection.mutable._
 
+import scala.util.control._
+
 object SchemaType {
   val READ_ONLY = 1
   val READ_WRITE = 2
@@ -90,6 +92,32 @@ object MongoDBConnectionManager {
 
   @throws(classOf[PersistenceException])
   def getConnection(schemaName: String, h: String, schema: String, u: String, pw: String, schemaType: Int): DB = {
+    if (h.indexOf(",") > 0) {
+      val hosts = h.split(",")
+      var ret: DB = null
+      val loop = new Breaks
+      loop.breakable {
+        for(oh <- hosts)
+        {
+          try {
+            ret = getConnectionPrivate(schemaName, oh, schema, u, pw, schemaType)
+            loop.break
+          } catch {
+            case e: PersistenceException => {
+            }
+          }
+        }
+      }
+      if (ret == null) throw PersistenceException("no replica set member can be connected")
+      else ret
+    }
+    else {
+      getConnectionPrivate(schemaName, h, schema, u, pw, schemaType)
+    }
+  }
+
+  @throws(classOf[PersistenceException])
+  private def getConnectionPrivate(schemaName: String, h: String, schema: String, u: String, pw: String, schemaType: Int): DB = {
     if (h.indexOf(":") > 0) getConnection(schemaName, h.split(":")(0), h.split(":")(1).toInt, schema, u, pw, schemaType)
     else getConnection(schemaName, h, 27017, schema, u, pw, schemaType)
   }
@@ -128,6 +156,7 @@ object MongoDBConnectionManager {
           var mongo = new Mongo(sa)
 
           var db = mongo.getDB(schema)
+          db.getStats() // Command as a connection check to make a connection to the server for availability check of the server
           val replicationType = detectReplicationType(db, username, password)
 
           if (replicationType == Member.RS) {

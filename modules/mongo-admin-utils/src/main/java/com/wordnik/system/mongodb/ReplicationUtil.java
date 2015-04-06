@@ -159,7 +159,7 @@ public class ReplicationUtil extends MongoUtil {
 	public static void usage(){
 		System.out.println("usage: ReplicationUtil");
 		System.out.println(" -c : CSV collection string (prefix with ! to exclude)");
-		System.out.println(" -h : source database host[:port]");
+		System.out.println(" -h : CSV of source database host[:port] (ex)x.x.x.x,y.y.y.y)");
 		System.out.println(" [-u : source database username]");
 		System.out.println(" [-p : source database password]");
 		System.out.println(" -H : target database host[:port]");
