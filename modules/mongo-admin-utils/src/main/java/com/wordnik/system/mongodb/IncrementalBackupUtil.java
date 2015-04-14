@@ -49,7 +49,7 @@ public class IncrementalBackupUtil extends MongoUtil {
 
 			//	create the thread and give it a connection + the util
 			OplogTailThread thd = new OplogTailThread(util, MongoDBConnectionManager.getOplog("oplog", DATABASE_HOST, DATABASE_USER_NAME, DATABASE_PASSWORD).get());
-      thd.setExitOnStopThread(true);
+			thd.setExitOnStopThread(true);
 			List<String> inclusions = new ArrayList<String>();
 			List<String> exclusions = new ArrayList<String>();
 			selectCollections(COLLECTIONS_STRING, inclusions, exclusions);
@@ -110,7 +110,7 @@ public class IncrementalBackupUtil extends MongoUtil {
 	public static void usage(){
 		System.out.println("usage: IncrementalBackupUtil");
 		System.out.println(" -c : CSV of collections to process, scoped to the db (database.collection), ! will exclude");
-		System.out.println(" -h : source database host[:port]");
+		System.out.println(" -h : CSV of source database host[:port] (ex)x.x.x.x,y.y.y.y)");
 		System.out.println(" -o : output directory");
 		System.out.println(" [-u : source database username]");
 		System.out.println(" [-p : source database password]");

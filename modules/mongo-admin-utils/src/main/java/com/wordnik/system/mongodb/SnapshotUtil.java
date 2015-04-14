@@ -356,7 +356,7 @@ public class SnapshotUtil extends MongoUtil {
 		System.out.println(" -d : database name");
 		System.out.println(" -o : output directory");
 		System.out.println(" [-c : CSV collection string (prefix with ! to exclude)]");
-		System.out.println(" [-h : database host[:port]]");
+		System.out.println(" -h : CSV of source database host[:port] (ex)x.x.x.x,y.y.y.y)");
 		System.out.println(" [-t : threads to run (default 3)]");
 		System.out.println(" [-u : database username]");
 		System.out.println(" [-p : database password]");
